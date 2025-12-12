@@ -65,6 +65,7 @@ theorem Vec.index_usize_spec' {α : Type u} [Inhabited α] (v : Vec α) (i : Usi
   mvcgen [index_usize]
   · grind
   · sorry
+-- To do (Oliver): complete proof
 
 /-
 Original:
@@ -109,6 +110,7 @@ theorem Vec.index_mut_usize_spec' {α : Type u} [Inhabited α] (v : Vec α) (i :
   · sorry
   · sorry
   · sorry
+-- To do (Oliver): complete proof
 
 /-
 Original:
@@ -141,6 +143,7 @@ theorem alloc.vec.from_elem_spec' {T : Type} (cloneInst : core.clone.Clone T)
     ⦃⇓v => ⌜v.val = List.replicate n.val x ∧ v.length = n.val⌝⦄ := by
   mvcgen [from_elem]
   sorry
+-- To do (Oliver): complete proof
 
 /-
 Original:
@@ -167,6 +170,7 @@ theorem alloc.vec.Vec.resize_spec' {T} (cloneInst : core.clone.Clone T)
   · mvcgen
   · mvcgen
     sorry
+-- To do (Oliver): complete proof
 
 /-
 Original:
