@@ -1,4 +1,5 @@
 import Aeneas.Std.Scalar.Bitwise
+import Aeneas.Std.Scalar.Bitwise_aux
 import Aeneas.Std.Scalar.Casts
 import Aeneas.Std.Scalar.CheckedOps
 import Aeneas.Std.Scalar.CloneCopy
