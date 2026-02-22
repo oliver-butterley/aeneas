@@ -12,10 +12,10 @@ of partial configurations, while giving the possibility of setting the default v
 of the omitted fields globally, by means of options.
 
 Given a structure `Config` with default-valued fields and names
-`elabFnName`, `PartialConfig`, `toConfig`, `tacticName`, the command
+`elabFnName`, `PartialConfig`, `toConfig`, `optionNamePrefix`, the command
 
 ```
-declare_command_partial_config_elab Config elabFnName PartialConfig toConfig tacticName
+declare_command_partial_config_elab Config elabFnName PartialConfig toConfig optionNamePrefix
 ```
 
 generates code which:
@@ -23,7 +23,7 @@ generates code which:
 1. defines a `structure PartialConfig`, which has the same fields as `Config` but each wrapped in `Option`,
    defaulting to `none`.
 2. inserts the command `declare_command_config_elab elabFnName PartialConfig` to register the partial elaboration for `PartialConfig`
-3. for each field `f : T` of `Config`, inserts the command `register_option tacticName.f : T`, whose
+3. for each field `f : T` of `Config`, inserts the command `register_option optionNamePrefix.f : T`, whose
    `defValue` is `Config`'s own default value.
 4. defines the function `def PartialConfig.toConfig` which converts a `PartialConfig` to a `Config` by filling the
    omitted fields (i.e., fields equal to `none`) with the default values registered in the options.
@@ -35,7 +35,7 @@ structure Config where
   b : Bool := true
   n : String := ""
 
-declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig tacticName
+declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig optionNamePrefix
 -- Generates:
 
 structure PartialConfig where
@@ -45,17 +45,17 @@ structure PartialConfig where
 
 declare_command_config_elab elabPartialConfig PartialConfig
 
-register_option tacticName.x : Nat := {
+register_option optionNamePrefix.x : Nat := {
   defValue := 3 -- the default value of Config.x
   descr    := "The default value of `Config.x`"
 }
 
-register_option tacticName.b : Bool := {
+register_option optionNamePrefix.b : Bool := {
   defValue := true -- the default value of Config.b
   descr    := "The default value of `Config.b`"
 }
 
-register_option tacticName.n : String := {
+register_option optionNamePrefix.n : String := {
   defValue := "" -- the default value of Config.b
   descr    := "The default value of `Config.n`"
 }
@@ -63,9 +63,9 @@ register_option tacticName.n : String := {
 def PartialConfig.toConfig {m} [Monad m] [self : Lean.MonadOptions m] (c : PartialConfig) : m Config := do
   let options ← Lean.MonadOptions.getOptions
   let { x, b, n } := c
-  let x := x.getD (tacticName.x.get options)
-  let b := b.getD (tacticName.b.get options)
-  let n := n.getD (tacticName.n.get options)
+  let x := x.getD (optionNamePrefix.x.get options)
+  let b := b.getD (optionNamePrefix.b.get options)
+  let n := n.getD (optionNamePrefix.n.get options)
   pure { x, b, n}
 ```
 -/
@@ -118,11 +118,11 @@ and a `PartialConfig.toConfig` conversion function.
 -/
 syntax (name := declareCommandPartialConfigElab)
     "declare_command_partial_config_elab "
-    ident   -- Config          (existing source structure)
-    ident   -- elabFn          (name for the generated elaboration function)
-    ident   -- PartialConfig   (name for the generated partial structure)
-    ident   -- toConfig        (base name for the conversion function)
-    ident   -- tacticName      (prefix for registered options)
+    ident   -- Config                (existing source structure)
+    ident   -- elabFn                (name for the generated elaboration function)
+    ident   -- PartialConfig         (name for the generated partial structure)
+    ident   -- toConfig              (base name for the conversion function)
+    ident   -- optionNamePrefix      (prefix for registered options)
     : command
 
 open Meta in
@@ -183,7 +183,7 @@ private def elabDeclareCommandPartialConfigElab
     let x := c.x
     let b := c.b
     let n := c.n
-    let x := x.getD (tacticName.x.get options)
+    let x := x.getD (optionNamePrefix.x.get options)
     ...
     pure (Config.mk x b n)
   ```
@@ -200,7 +200,7 @@ private def elabDeclareCommandPartialConfigElab
   -- Build `pure (Config.mk f1 f2 ...)`
   let fieldIdents : Array (TSyntax `term) := fieldData.map fun field =>
     ⟨mkIdent field.1⟩
-  let pureDo ← `(doElem| pure ($(mkIdent (configName ++ `mk)) $fieldIdents*))
+  let pureDo ← `(doElem| pure (⟨ $fieldIdents,* ⟩))
 
   -- `let options ← Lean.MonadOptions.getOptions`
   let getOptsDo ← `(doElem| let options ← Lean.MonadOptions.getOptions)
@@ -237,7 +237,7 @@ structure Config where
   n : String := ""
 
 -- Declare
-declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig Aeneas.Meta.PartialConfig.tacticName
+declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig Aeneas.Meta.PartialConfig.optionNamePrefix
 
 /--
 info: structure Aeneas.Meta.PartialConfig.PartialConfig : Type
@@ -259,25 +259,25 @@ info: def Aeneas.Meta.PartialConfig.PartialConfig.toConfig : {m : Type → Type}
   [Monad m] → [MonadOptions m] → PartialConfig → m Config :=
 fun {m} [Monad m] [MonadOptions m] c => do
   let options ← getOptions
-  have x : Nat := c.x.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.tacticName.x)
-  have b : Bool := c.b.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.tacticName.b)
-  have n : String := c.n.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.tacticName.n)
+  have x : Nat := c.x.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.x)
+  have b : Bool := c.b.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.b)
+  have n : String := c.n.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.n)
   pure { x := x, b := b, n := n }
 -/
 #guard_msgs in
 #print PartialConfig.toConfig
 
-/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.tacticName.x : Lean.Option Nat -/
+/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.optionNamePrefix.x : Lean.Option Nat -/
 #guard_msgs in
-#check Aeneas.Meta.PartialConfig.tacticName.x
+#check Aeneas.Meta.PartialConfig.optionNamePrefix.x
 
-/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.tacticName.b : Lean.Option Bool -/
+/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.optionNamePrefix.b : Lean.Option Bool -/
 #guard_msgs in
-#check Aeneas.Meta.PartialConfig.tacticName.b
+#check Aeneas.Meta.PartialConfig.optionNamePrefix.b
 
-/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.tacticName.n : Lean.Option String -/
+/-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.optionNamePrefix.n : Lean.Option String -/
 #guard_msgs in
-#check Aeneas.Meta.PartialConfig.tacticName.n   -- : Lean.Option String
+#check Aeneas.Meta.PartialConfig.optionNamePrefix.n   -- : Lean.Option String
 
 end Example
 
