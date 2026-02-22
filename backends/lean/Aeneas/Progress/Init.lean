@@ -4,6 +4,7 @@ import Aeneas.Std.Primitives
 import AeneasMeta.Extensions
 import Aeneas.Progress.Trace
 import Aeneas.Std.WP
+import AeneasMeta.PartialConfig
 
 namespace Aeneas
 
@@ -50,6 +51,41 @@ initialize progressPostSimprocExt : Simp.SimprocExtension ←
   Simp.registerSimprocAttr `progress_post_simps_proc "\
     The `progress_post_simps_proc` attribute registers simp procedures to be used by `progress`
     during its preprocessing phase." none
+
+/-!
+# Config
+-/
+
+structure Config where
+  /-- Use `scalar_tac` (and `simp`) to discharge preconditions -/
+  scalarTac : Bool := false
+  /-- Attempt to infer the ghost variables (variables of progress theorems
+      that are not bound in the function call) -/
+  inferGhostVars : Bool := true
+  /-- Use `grind` to discharge preconditions -/
+  grind : Bool := true
+  /-- Use the ground simp procedures when calling `grind` -/
+  withGroundSimprocs : Bool := true
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splits : Nat := 4
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  ematch : Nat := 5
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitMatch : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitIte : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitIndPred : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  funext : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  gen : Nat  := 2
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  instances : Nat  := 1000
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  canonHeartbeats : Nat := 1000
+
+declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig aeneas.progress
 
 /-! # Attribute: `progress` -/
 
