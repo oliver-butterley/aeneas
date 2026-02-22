@@ -110,7 +110,7 @@ private def getFieldTypeAsSyntax (projName : Name) : TermElabM (TSyntax `term) :
 
 /--
 ```
-declare_command_partial_config_elab Config elabFn PartialConfig toConfig tacticPrefix
+declare_command_partial_config_elab Config elabFn PartialConfig toConfig optionNamePrefix
 ```
 
 Generates a `PartialConfig` structure, the config elaborator, option registrations,
@@ -127,12 +127,12 @@ syntax (name := declareCommandPartialConfigElab)
 
 open Meta in
 private def elabDeclareCommandPartialConfigElab
-    (configId elabFnId partialConfigId toConfigId tacticPrefixId : Syntax)
+    (configId elabFnId partialConfigId toConfigId optionNamePrefixId : Syntax)
     : CommandElabM Unit := do
   let elabFnName   := elabFnId.getId
   let partialName  := partialConfigId.getId
   let toConfigName := toConfigId.getId
-  let tacticPrefix := tacticPrefixId.getId
+  let optionNamePrefix := optionNamePrefixId.getId
 
   -- ── Resolve `configName` in the current namespace/scope ───────────────────────
   let configName ← liftTermElabM <| resolveGlobalConstNoOverload configId
@@ -166,7 +166,7 @@ private def elabDeclareCommandPartialConfigElab
 
   -- ── 3. `register_option` for each field ─────────────────────────────────────
   for (fname, type, defaultValue) in fieldData do
-    let optId    := mkIdent (tacticPrefix ++ fname)
+    let optId    := mkIdent (optionNamePrefix ++ fname)
     let descr := Syntax.mkStrLit s!"The default value of `{configName}.{fname}`"
     let regCmd ← `(register_option $optId : $type := {
       defValue := $defaultValue
@@ -180,22 +180,23 @@ private def elabDeclareCommandPartialConfigElab
   def PartialConfig.toConfig {m} [Monad m] [Lean.MonadOptions m]
       (c : PartialConfig) : m Config := do
     let options ← Lean.MonadOptions.getOptions
-    let x := c.x
-    let b := c.b
-    let n := c.n
-    let x := x.getD (optionNamePrefix.x.get options)
-    ...
+    let x := Option.getD (Config.x c) (Lean.Option.get options optionNamePrefix.x)
+    let b := Option.getD (Config.b c) (Lean.Option.get options optionNamePrefix.b)
+    let n := Option.getD (Config.n c) (Lean.Option.get options optionNamePrefix.n)
     pure (Config.mk x b n)
   ```
   -/
+  -- TODO: name collisions
+  let config   : TSyntax `ident := mkIdent `_config
+  let options  : TSyntax `ident := mkIdent `_options
 
   /- For each field, generate:
-     `let fi := Option.getD c.fi (tacticPrefix.fi.get options)` -/
+     `let fi := Option.getD c.fi (Lean.Option.get optionNamePrefix.fi options)` -/
   let fieldBindings ← fieldData.mapM fun (fname, _, _) => do
     let fi       : TSyntax `ident := mkIdent fname
     let projId   : TSyntax `ident := mkIdent (partialName ++ fname)
-    let optGetId : TSyntax `ident := mkIdent (tacticPrefix ++ fname ++ `get)
-    `(doElem| let $fi:ident := Option.getD ($projId:ident c) ($optGetId:ident options))
+    let fieldOptionId : TSyntax `ident := mkIdent (optionNamePrefix ++ fname)
+    `(doElem| let $fi:ident := Option.getD ($projId:ident $config) ((_root_.Lean.Option.get $options $fieldOptionId:ident)))
 
   -- Build `pure (Config.mk f1 f2 ...)`
   let fieldIdents : Array (TSyntax `term) := fieldData.map fun field =>
@@ -203,7 +204,7 @@ private def elabDeclareCommandPartialConfigElab
   let pureDo ← `(doElem| pure (⟨ $fieldIdents,* ⟩))
 
   -- `let options ← Lean.MonadOptions.getOptions`
-  let getOptsDo ← `(doElem| let options ← Lean.MonadOptions.getOptions)
+  let getOptsDo ← `(doElem| let $(options) ← Lean.MonadOptions.getOptions)
 
   -- Put all the elements together to generate the function body
   let allElems : Array (TSyntax `doElem) :=
@@ -216,15 +217,15 @@ private def elabDeclareCommandPartialConfigElab
   let fnId := mkIdent (partialName ++ toConfigName)
   let toConfigCmd ← `(
     def $fnId {m : Type → Type} [Monad m] [Lean.MonadOptions m]
-        (c : $(mkIdent partialName)) : m $(mkIdent configName) := do
+        ($config : $(mkIdent partialName)) : m $(mkIdent configName) := do
       $allSeqItems*)
   elabCommand toConfigCmd
 
 elab_rules : command
   | `(declare_command_partial_config_elab
-        $configId $elabFnId $partialConfigId $toConfigId $tacticPrefixId) =>
+        $configId $elabFnId $partialConfigId $toConfigId $optionNamePrefixId) =>
     elabDeclareCommandPartialConfigElab
-      configId elabFnId partialConfigId toConfigId tacticPrefixId
+      configId elabFnId partialConfigId toConfigId optionNamePrefixId
 
 -- ============================================================
 -- Example
@@ -257,11 +258,11 @@ constructor:
 /--
 info: def Aeneas.Meta.PartialConfig.PartialConfig.toConfig : {m : Type → Type} →
   [Monad m] → [MonadOptions m] → PartialConfig → m Config :=
-fun {m} [Monad m] [MonadOptions m] c => do
-  let options ← getOptions
-  have x : Nat := c.x.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.x)
-  have b : Bool := c.b.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.b)
-  have n : String := c.n.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.n)
+fun {m} [Monad m] [MonadOptions m] _config => do
+  let _options ← getOptions
+  have x : Nat := _config.x.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.x)
+  have b : Bool := _config.b.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.b)
+  have n : String := _config.n.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.n)
   pure { x := x, b := b, n := n }
 -/
 #guard_msgs in
@@ -277,7 +278,7 @@ fun {m} [Monad m] [MonadOptions m] c => do
 
 /-- info: Aeneas.Meta.PartialConfig.Aeneas.Meta.PartialConfig.optionNamePrefix.n : Lean.Option String -/
 #guard_msgs in
-#check Aeneas.Meta.PartialConfig.optionNamePrefix.n   -- : Lean.Option String
+#check Aeneas.Meta.PartialConfig.optionNamePrefix.n   -- : Lean.Option String-/
 
 end Example
 
