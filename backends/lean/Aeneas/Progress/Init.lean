@@ -85,7 +85,7 @@ structure Config where
   /--`grind` parameter: see `Lean.Grind.Config` -/
   canonHeartbeats : Nat := 1000
 
-declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig aeneas.progress
+declare_partial_config_elab Config elabPartialConfig PartialConfig toConfig aeneas.progress
 
 /-! # Attribute: `progress` -/
 

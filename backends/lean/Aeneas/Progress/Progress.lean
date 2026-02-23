@@ -670,12 +670,13 @@ def progressAsmsOrLookupTheorem (args : Args) (withTh : Option Expr) :
       trace[Progress] msg
       throwError msg
 
-syntax progressArgs := ("with" term)? ("as" " ⟨ " binderIdent,* " ⟩")? ("by" tacticSeq)?
+syntax progressArgs := Parser.Tactic.optConfig ("with" term)? ("as" " ⟨ " binderIdent,* " ⟩")? ("by" tacticSeq)?
 
 def parseProgressArgs
-: TSyntax ``Aeneas.Progress.progressArgs -> TacticM (Option Expr × Array (Option Name) × Option Syntax.Tactic)
-| args@`(progressArgs| $[with $pspec:term]? $[as ⟨ $ids,* ⟩]? $[by $byTac]? ) => withMainContext do
+: TSyntax ``Aeneas.Progress.progressArgs → TacticM (Config × Option Expr × Array (Option Name) × Option Syntax.Tactic)
+| args@`(progressArgs| $config $[with $pspec:term]? $[as ⟨ $ids,* ⟩]? $[by $byTac]? ) => withMainContext do
   trace[Progress] "Progress arguments: {args.raw}"
+  let config ← (← elabPartialConfig config).toConfig
   let withTh?: Option Expr ← Option.sequence <| pspec.map fun
     /- We have to make a case disjunction, because if we treat identifiers like
        terms, then Lean will not succeed in infering their implicit parameters
@@ -703,7 +704,7 @@ def parseProgressArgs
   let byTac : Option Syntax.Tactic := match byTac with
     | none => none
     | some byTac => some ⟨byTac.raw⟩
-  return (withTh?, ids, byTac)
+  return (config, withTh?, ids, byTac)
 | _ => throwUnsupportedSyntax
 
 /-- Use `agrind` after preprocessing goal the goal, in particular to simplify arithmetic expressions. -/
@@ -806,6 +807,7 @@ def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option 
 def asyncOption : Bool := false
 
 def evalProgress
+  (config : Config)
   (async : Bool)
   (keepPretty : Option Name) (withArg: Option Expr) (ids: Array (Option Name))
   (byTac : Option Syntax.Tactic)
@@ -920,30 +922,30 @@ which repeatedly calls `progress` until no further progress can be made. See the
 of `progress*` for more details.
 -/
 elab (name := progress) "progress" args:progressArgs : tactic => do
-  let (withArg, ids, byTac) ← parseProgressArgs args
-  evalProgress asyncOption none withArg ids byTac *> return ()
+  let (config, withArg, ids, byTac) ← parseProgressArgs args
+  evalProgress config asyncOption none withArg ids byTac *> return ()
 
 @[inherit_doc progress]
 elab tk:"progress?" args:progressArgs : tactic => do
-  let (withArg, ids, byTac) ← parseProgressArgs args
-  let stats ← evalProgress asyncOption none withArg ids byTac
+  let (config, withArg, ids, byTac) ← parseProgressArgs args
+  let stats ← evalProgress config asyncOption none withArg ids byTac
   let mut stxArgs := args.raw
-  if stxArgs[0].isNone then
+  if stxArgs[1].isNone then
     let withArg := mkNullNode #[mkAtom "with", ← stats.toSyntax]
-    stxArgs := stxArgs.setArg 0 withArg
+    stxArgs := stxArgs.setArg 1 withArg
   let tac := mkNode `Aeneas.Progress.progress #[mkAtom "progress", stxArgs]
   let fmt ← PrettyPrinter.ppCategory ``Lean.Parser.Tactic.tacticSeq tac
   Meta.Tactic.TryThis.addSuggestion tk fmt.pretty (origSpan? := ← getRef)
 
 @[inherit_doc progress]
 syntax (name := letProgress) "let" noWs "*" " ⟨ " binderIdent,* " ⟩" colGe
-  " ← " colGe (term <|> "*" <|> "*?") ("by" tacticSeq)? : tactic
+  " ← " colGe ("*?" <|> "*" <|> term) ("by" tacticSeq)? Parser.Tactic.optConfig : tactic
 
 def parseLetProgress
 : TSyntax ``Aeneas.Progress.letProgress ->
-  TacticM (Option Expr × Bool × Array (Option Name) × Option Syntax.Tactic)
-| args@`(tactic| let* ⟨ $ids,* ⟩ ← $pspec $[by $byTac]?) =>  withMainContext do
-  trace[Progress] "Progress arguments: {args.raw}"
+  TacticM (Config × Option Expr × Bool × Array (Option Name) × Option Syntax.Tactic)
+| args@`(tactic| let* ⟨ $ids,* ⟩ ← $pspec $[by $byTac]? $config) =>  withMainContext do
+  trace[Progress] "Progress arguments: {args.raw}\n- config: {config.raw[0]}"
   let ((withThm, suggest) : (Option Expr × Bool)) ← do
     /- We have to make a case disjunction, because if we treat identifiers like
       terms, then Lean will not succeed in infering their implicit parameters
@@ -974,17 +976,19 @@ def parseLetProgress
   let ids := ids.getElems.map fun
       | `(binderIdent| $name:ident) => some name.getId
       | _ => none
+  let config ← (← elabPartialConfig config).toConfig
+  trace[Progress] "config: {config.scalarTac}"
   let byTac : Option Syntax.Tactic := match byTac with
     | none => none
     | some byTac => some ⟨byTac.raw⟩
   trace[Progress] "User-provided ids: {ids}"
-  return (withThm, suggest, ids, byTac)
+  return (config, withThm, suggest, ids, byTac)
 | _ => throwUnsupportedSyntax
 
 elab tk:letProgress : tactic => do
   withMainContext do
-  let (withArg, suggest, ids, byTac) ← parseLetProgress tk
-  let stats ← evalProgress asyncOption (some (.str .anonymous "_")) withArg ids byTac
+  let (config, withArg, suggest, ids, byTac) ← parseLetProgress tk
+  let stats ← evalProgress config asyncOption (some (.str .anonymous "_")) withArg ids byTac
   let mut stxArgs := tk.raw
   if suggest then
     trace[Progress] "suggest is true"
