@@ -5,7 +5,7 @@ namespace Aeneas.Meta.PartialConfig
 open Lean Elab Command
 
 /-!
-## `declare_command_partial_config_elab`
+## `declare_partial_config_elab`
 
 This command builds on top of `declare_command_config_elab` to enable elaboration
 of partial configurations, while giving the possibility of setting the default values
@@ -15,7 +15,7 @@ Given a structure `Config` with default-valued fields and names
 `elabFnName`, `PartialConfig`, `toConfig`, `optionNamePrefix`, the command
 
 ```
-declare_command_partial_config_elab Config elabFnName PartialConfig toConfig optionNamePrefix
+declare_partial_config_elab Config elabFnName PartialConfig toConfig optionNamePrefix
 ```
 
 generates code which:
@@ -35,7 +35,7 @@ structure Config where
   b : Bool := true
   n : String := ""
 
-declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig optionNamePrefix
+declare_partial_config_elab Config elabPartialConfig PartialConfig toConfig optionNamePrefix
 -- Generates:
 
 structure PartialConfig where
@@ -110,14 +110,14 @@ private def getFieldTypeAsSyntax (projName : Name) : TermElabM (TSyntax `term) :
 
 /--
 ```
-declare_command_partial_config_elab Config elabFn PartialConfig toConfig optionNamePrefix
+declare_partial_config_elab Config elabFn PartialConfig toConfig optionNamePrefix
 ```
 
 Generates a `PartialConfig` structure, the config elaborator, option registrations,
 and a `PartialConfig.toConfig` conversion function.
 -/
 syntax (name := declareCommandPartialConfigElab)
-    "declare_command_partial_config_elab "
+    "declare_partial_config_elab "
     ident   -- Config                (existing source structure)
     ident   -- elabFn                (name for the generated elaboration function)
     ident   -- PartialConfig         (name for the generated partial structure)
@@ -126,7 +126,7 @@ syntax (name := declareCommandPartialConfigElab)
     : command
 
 open Meta in
-private def elabDeclareCommandPartialConfigElab
+private def elabDeclarePartialConfigElab
     (configId elabFnId partialConfigId toConfigId optionNamePrefixId : Syntax)
     : CommandElabM Unit := do
   let elabFnName   := elabFnId.getId
@@ -160,7 +160,7 @@ private def elabDeclareCommandPartialConfigElab
   elabCommand structCmd
 
   -- ── 2. `declare_command_config_elab elabFn PartialConfig` ───────────────────
-  let dcceCmd ← `(declare_command_config_elab
+  let dcceCmd ← `(declare_config_elab
                     $(mkIdent elabFnName) $(mkIdent partialName))
   elabCommand dcceCmd
 
@@ -187,8 +187,8 @@ private def elabDeclareCommandPartialConfigElab
   ```
   -/
   -- TODO: name collisions
-  let config   : TSyntax `ident := mkIdent `_config
-  let options  : TSyntax `ident := mkIdent `_options
+  let config   : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `_config))
+  let options  : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `_options))
 
   /- For each field, generate:
      `let fi := Option.getD c.fi (Lean.Option.get optionNamePrefix.fi options)` -/
@@ -222,9 +222,9 @@ private def elabDeclareCommandPartialConfigElab
   elabCommand toConfigCmd
 
 elab_rules : command
-  | `(declare_command_partial_config_elab
+  | `(declare_partial_config_elab
         $configId $elabFnId $partialConfigId $toConfigId $optionNamePrefixId) =>
-    elabDeclareCommandPartialConfigElab
+    elabDeclarePartialConfigElab
       configId elabFnId partialConfigId toConfigId optionNamePrefixId
 
 -- ============================================================
@@ -238,7 +238,7 @@ structure Config where
   n : String := ""
 
 -- Declare
-declare_command_partial_config_elab Config elabPartialConfig PartialConfig toConfig Aeneas.Meta.PartialConfig.optionNamePrefix
+declare_partial_config_elab Config elabPartialConfig PartialConfig toConfig Aeneas.Meta.PartialConfig.optionNamePrefix
 
 /--
 info: structure Aeneas.Meta.PartialConfig.PartialConfig : Type
