@@ -8,6 +8,9 @@ open Lean Elab Command
 `+field` (or `-field`) for fields of type `Option Bool` and not only `Bool`. We need this for `declare_elab_partial_config`.
 
 TODO: find a way of upstreaming the diff, which is very small.
+TODO: we initially tried to write `declare_partial_config_elab` by piggy-backing on `declare_elab_config`, but as we
+had to implement our own version of `declare_elab_config` there is no point in keeping all the complexity of
+`declare_partial_config_elab`, in particular there is no need to define the `PartialConfig` structure anymore.
 -/
 namespace OptionConfig
 
