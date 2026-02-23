@@ -945,7 +945,7 @@ def parseLetProgress
 : TSyntax ``Aeneas.Progress.letProgress ->
   TacticM (Config × Option Expr × Bool × Array (Option Name) × Option Syntax.Tactic)
 | args@`(tactic| let* ⟨ $ids,* ⟩ ← $pspec $[by $byTac]? $config) =>  withMainContext do
-  trace[Progress] "Progress arguments: {args.raw}\n- config: {config.raw[0]}"
+  trace[Progress] "Progress arguments: {args.raw}"
   let ((withThm, suggest) : (Option Expr × Bool)) ← do
     /- We have to make a case disjunction, because if we treat identifiers like
       terms, then Lean will not succeed in infering their implicit parameters
@@ -977,7 +977,6 @@ def parseLetProgress
       | `(binderIdent| $name:ident) => some name.getId
       | _ => none
   let config ← (← elabPartialConfig config).toConfig
-  trace[Progress] "config: {config.scalarTac}"
   let byTac : Option Syntax.Tactic := match byTac with
     | none => none
     | some byTac => some ⟨byTac.raw⟩
