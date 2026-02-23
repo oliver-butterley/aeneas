@@ -134,6 +134,9 @@ private def elabDeclarePartialConfigElab
   let toConfigName := toConfigId.getId
   let optionNamePrefix := optionNamePrefixId.getId
 
+  let config   : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `config))
+  let options  : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `options))
+
   -- ── Resolve `configName` in the current namespace/scope ───────────────────────
   let configName ← liftTermElabM <| resolveGlobalConstNoOverload configId
 
@@ -142,16 +145,17 @@ private def elabDeclarePartialConfigElab
   unless isStructure env configName do
     throwErrorAt configId "'{configName}' is not a structure"
 
-  -- ── Collect field info: (fieldName, type, defaultValue) ──────────────
+  -- ── Collect field info: (varName, fieldName, type, defaultValue) ──────────────
   let fieldNames := getStructureFields env configName
   let fieldData ← fieldNames.mapM fun fname => do
     let projName := configName ++ fname
     let type ← liftTermElabM <| getFieldTypeAsSyntax projName
     let defaultValue ← liftTermElabM <| getFieldDefaultValueAsSyntax configName fname
-    return (fname, type, defaultValue)
+    let varName ← liftCoreM (mkFreshUserName fname)
+    return (varName, fname, type, defaultValue)
 
   -- ── 1. `structure PartialConfig where` ──────────────────────────────────────
-  let partialFields ← fieldData.mapM fun (fname, typeSyn, _) => do
+  let partialFields ← fieldData.mapM fun (_, fname, typeSyn, _) => do
     let fid := mkIdent fname
     `(Lean.Parser.Command.structExplicitBinder|
         ($fid : Option $typeSyn := none))
@@ -165,7 +169,7 @@ private def elabDeclarePartialConfigElab
   elabCommand dcceCmd
 
   -- ── 3. `register_option` for each field ─────────────────────────────────────
-  for (fname, type, defaultValue) in fieldData do
+  for (_, fname, type, defaultValue) in fieldData do
     let optId    := mkIdent (optionNamePrefix ++ fname)
     let descr := Syntax.mkStrLit s!"The default value of `{configName}.{fname}`"
     let regCmd ← `(register_option $optId : $type := {
@@ -186,21 +190,18 @@ private def elabDeclarePartialConfigElab
     pure (Config.mk x b n)
   ```
   -/
-  -- TODO: name collisions
-  let config   : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `_config))
-  let options  : TSyntax `ident := mkIdent (← liftCoreM (mkFreshUserName `_options))
 
   /- For each field, generate:
      `let fi := Option.getD c.fi (Lean.Option.get optionNamePrefix.fi options)` -/
-  let fieldBindings ← fieldData.mapM fun (fname, _, _) => do
-    let fi       : TSyntax `ident := mkIdent fname
+  let fieldBindings ← fieldData.mapM fun (varName, fname, _, _) => do
+    let varName  :TSyntax `ident := mkIdent varName
     let projId   : TSyntax `ident := mkIdent (partialName ++ fname)
     let fieldOptionId : TSyntax `ident := mkIdent (optionNamePrefix ++ fname)
-    `(doElem| let $fi:ident := Option.getD ($projId:ident $config) ((_root_.Lean.Option.get $options $fieldOptionId:ident)))
+    `(doElem| let $varName:ident := Option.getD ($projId:ident $config) ((_root_.Lean.Option.get $options $fieldOptionId:ident)))
 
   -- Build `pure (Config.mk f1 f2 ...)`
-  let fieldIdents : Array (TSyntax `term) := fieldData.map fun field =>
-    ⟨mkIdent field.1⟩
+  let fieldIdents : Array (TSyntax `term) := fieldData.map fun (varName, _) =>
+    ⟨mkIdent varName⟩
   let pureDo ← `(doElem| pure (⟨ $fieldIdents,* ⟩))
 
   -- `let options ← Lean.MonadOptions.getOptions`
@@ -258,11 +259,11 @@ constructor:
 /--
 info: def Aeneas.Meta.PartialConfig.PartialConfig.toConfig : {m : Type → Type} →
   [Monad m] → [MonadOptions m] → PartialConfig → m Config :=
-fun {m} [Monad m] [MonadOptions m] _config => do
-  let _options ← getOptions
-  have x : Nat := _config.x.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.x)
-  have b : Bool := _config.b.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.b)
-  have n : String := _config.n.getD (Lean.Option.get _options Aeneas.Meta.PartialConfig.optionNamePrefix.n)
+fun {m} [Monad m] [MonadOptions m] config => do
+  let options ← getOptions
+  have x : Nat := config.x.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.x)
+  have b : Bool := config.b.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.b)
+  have n : String := config.n.getD (Lean.Option.get options Aeneas.Meta.PartialConfig.optionNamePrefix.n)
   pure { x := x, b := b, n := n }
 -/
 #guard_msgs in
