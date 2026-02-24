@@ -166,17 +166,21 @@ attribute [progress_post_simps]
   Std.IScalar.toNat Std.UScalar.ofNatCore_val_eq Std.IScalar.ofInt_val_eq
 
 structure Args where
-  /-- Asynchronously solve the preconditions? -/
+  /-- Asynchronously solve the preconditions? **DO NOT USE**: this is experimental and triggers bugs -/
   async : Bool
-  /-- Same as `keep`, but use a special wrapper so that the equality gets pretty printed to:
-     `[> let z ← x + y <]`
+  /-- Attempt to infer ghost variables by matching preconditions with meta-variables against
+  local assumptions -/
+  inferGhostVars : Bool
+  /-- Introduce a dummy variable in the environment, which gets pretty-printed to something
+  of the following shape:
+  `[> let z ← x + y <]`
    -/
   keepPretty : Option Name
   /-- Identifiers to use when introducing fresh variables -/
   ids : Array (Option Name)
   /-- Tactic to use to prove preconditions while instantiating meta-variables by
-     matching those preconditions with the assumptions in the context. -/
-  assumTac : TacticM Unit
+     matching these preconditions with the assumptions in the context. -/
+  assumTac : Option (TacticM Unit)
   /- Tactic to use to solve the preconditions -/
   solvePreconditionTac : TacticM Unit
   /- Syntax of the tactic provided by the user to solve the remaining proof obligations -/
@@ -450,13 +454,14 @@ def trySolvePreconditions (args : Args) (newPropGoals : List MVarId) : TacticM (
   setGoals (ordPropGoals.map Prod.snd)
   /- First attempt to solve the preconditions in a *synchronous* manner by using the `singleAssumptionTac`.
      We do this to instantiate meta-variables -/
-  allGoalsNoRecover (tryTac args.assumTac)
-  /- Attempt to resolve the typeclass instances again (we already tried once, but maybe we couldn't
-     because some meta-variables were not resolved) -/
-  setGoals (← trySolveTypeclasses (← getGoals))
+  if let some assumTac := args.assumTac then
+    allGoalsNoRecover (tryTac assumTac)
+    /- Attempt to resolve the typeclass instances again (we already tried once, but maybe we couldn't
+      because some meta-variables were not resolved) -/
+    setGoals (← trySolveTypeclasses (← getGoals))
   /- Retrieve the unsolved preconditions - make sure we recover them in the original order -/
   let goals ← newPropGoals.filterMapM (fun g => do if ← g.isAssigned then pure none else pure (some g))
-  /- Then attempt to solve the remaining preconditions *asynchronously* -/
+  /- Then attempt to solve the remaining preconditions by using more sophisticated tactics, potentially *asynchronously* -/
   if args.async then
     let promises ← Async.asyncRunTacticOnGoals args.solvePreconditionTac goals (cancelTk? := ← IO.CancelToken.new) (inlineFreshProofs := false)
     let promises : Array (Task _) := promises.map IO.Promise.result?
@@ -579,6 +584,8 @@ def tryApply (args : Args) (isLet:Bool) (fExpr : Expr) (kind : String) (th : Opt
 
 /-- Try to progress with an assumption.
     Return `some` if we succeed, `none` otherwise.
+
+    -- TODO: check that they are "compatible" with the goal to avoid a potentially expensive unification
 -/
 def tryAssumptions (args : Args) (isLet:Bool) (fExpr : Expr) :
   TacticM (Option (Goals × UsedTheorem)) := do
@@ -654,6 +661,7 @@ def progressAsmsOrLookupTheorem (args : Args) (withTh : Option Expr) :
       -- It failed: try to use the recursive assumptions
       trace[Progress] "Failed using a pspec theorem: trying to use a recursive assumption"
       -- We try to apply the assumptions of kind "auxDecl"
+      -- TODO: check that they are "compatible" with the goal to avoid a potentially expensive unification
       let ctx ← Lean.MonadLCtx.getLCtx
       let decls ← ctx.getAllDecls
       let decls := decls.filter (λ decl => match decl.kind with
@@ -675,8 +683,10 @@ syntax progressArgs := Parser.Tactic.optConfig ("with" term)? ("as" " ⟨ " bind
 def parseProgressArgs
 : TSyntax ``Aeneas.Progress.progressArgs → TacticM (Config × Option Expr × Array (Option Name) × Option Syntax.Tactic)
 | args@`(progressArgs| $config $[with $pspec:term]? $[as ⟨ $ids,* ⟩]? $[by $byTac]? ) => withMainContext do
+  withTraceNode `Progress (fun _ => do pure m!"progressArgs") do
   trace[Progress] "Progress arguments: {args.raw}"
-  let config ← (← elabPartialConfig config).toConfig
+  let config ← elabPartialConfig config
+  trace[Progress] "config: {repr config}"
   let withTh?: Option Expr ← Option.sequence <| pspec.map fun
     /- We have to make a case disjunction, because if we treat identifiers like
        terms, then Lean will not succeed in infering their implicit parameters
@@ -708,12 +718,12 @@ def parseProgressArgs
 | _ => throwUnsupportedSyntax
 
 /-- Use `agrind` after preprocessing goal the goal, in particular to simplify arithmetic expressions. -/
-def evalAGrindWithPreprocess : TacticM Unit := do
+def evalAGrindWithPreprocess (withGroundSimprocs : Bool) (config : Grind.Config) : TacticM Unit := do
   withTraceNode `Progress (fun _ => do pure m!"evalAGrindWithPreprocess") do
   traceGoalWithNode "before preprocessing"
   let simpArgs : Simp.SimpArgs ← ScalarTac.getSimpArgs
-  let config : Simp.Config := {dsimp := false, failIfUnchanged := false, maxDischargeDepth := 1}
-  match ← ScalarTac.simpAsmsTarget true config simpArgs with
+  let sconfig : Simp.Config := {dsimp := false, failIfUnchanged := false, maxDischargeDepth := 1}
+  match ← ScalarTac.simpAsmsTarget true sconfig simpArgs with
   | none =>
     trace[Progress] "Goal solved by preprocessing!"
   | some _ =>
@@ -725,14 +735,13 @@ def evalAGrindWithPreprocess : TacticM Unit := do
        TODO: make those options of `progress`
        TODO: fine tune the parameters
      -/
-    let config : Grind.Config := { splits := 4, splitMatch := false, splitIte := false, funext := false, gen := 4, instances := 1000 }
-    let params ← Aeneas.Grind.mkParams config #[Aeneas.Grind.agrindExt.getState (← Lean.getEnv)] (withGroundSimprocs := true)
+    let params ← Aeneas.Grind.mkParams config #[Aeneas.Grind.agrindExt.getState (← Lean.getEnv)] withGroundSimprocs
     let mvarId ← Lean.Elab.Tactic.getMainGoal
     try
       Aeneas.Grind.agrindEval config params mvarId
     catch e => trace[Progress] "Grind failed:\n{e.toMessageData}"
 
-def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option Expr) (ids: Array (Option Name))
+def evalProgressCore (config : Config) (keepPretty : Option Name) (withArg: Option Expr) (ids: Array (Option Name))
   (byTacStx : Option Syntax.Tactic)
   : TacticM Stats := do
   withTraceNode `Progress (fun _ => pure m!"evalProgress") do
@@ -741,13 +750,32 @@ def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option 
   let _ ← Simp.simpAt true { maxDischargeDepth := 1, failIfUnchanged := false}
       {simpThms := #[← progressSimpExt.getTheorems]} (.targets #[] true)
   withMainContext do
-  /- Preprocessing step for `singleAssumptionTac` -/
-  let singleAssumptionTacDtree ← singleAssumptionTacPreprocess
-  /- Grind tactic -/
-  let grindTac : TacticM Unit := evalAGrindWithPreprocess
-  /- For scalarTac we have a fast track: if the goal is not a linear
-     arithmetic goal, we skip (note that otherwise, scalarTac would try
-     to prove a contradiction) -/
+
+  /- **Assumption tactic**:
+
+    We use it to:
+    - discharge preconditions by using local assumptions (this is activated by `Config.assumTac`)
+    - more importantly, instantiate meta-variables introduced because of ghost variables, by matching
+      preconditions against local assumptions (this is activated by `Config.inferGhostVars`)
+  -/
+  let customAssumTac : Option (TacticM Unit) ← do
+    if config.assumTac then
+      /- Preprocessing step for `singleAssumptionTac` -/
+      let singleAssumptionTacDtree ← singleAssumptionTacPreprocess
+      pure (some do
+        withTraceNode `Progress (fun _ => pure m!"Attempting to solve with `singleAssumptionTac`") do
+        singleAssumptionTacCore singleAssumptionTacDtree (instMVars := config.inferGhostVars))
+    else pure none
+
+  /- **Grind tactic**: -/
+  let grindTac : List (TacticM Unit) :=
+    if config.grind then [evalAGrindWithPreprocess config.withGroundSimprocs config.toGrindConfig]
+    else []
+
+  /- **ScalarTac**:
+
+    There is a fast track: if the goal is not an arithmetic goal, we skip
+    (note that otherwise, `scalarTac` would try to prove a contradiction) -/
   let scalarTac : TacticM Unit := do
     withTraceNode `Progress (fun _ => pure m!"Attempting to solve with `scalarTac`") do
     if ← ScalarTac.goalIsLinearInt then
@@ -756,6 +784,9 @@ def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option 
       ScalarTac.scalarTac { split := false, auxTheorem := false }
     else
       throwError "Not a linear arithmetic goal"
+  let scalarTac := if config.scalarTac then [scalarTac] else []
+
+  /- **simp [*]** -/
   let simpLemmas ← Aeneas.ScalarTac.scalarTacSimpExt.getTheorems
   let localAsms ← pure ((← (← getLCtx).getAssumptions).map LocalDecl.fvarId)
   let simpArgs : Simp.SimpArgs := {simpThms := #[simpLemmas], hypsToUse := localAsms.toArray}
@@ -765,9 +796,9 @@ def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option 
     let r ← Simp.simpAt false { maxDischargeDepth := 1 } simpArgs (.targets #[] true)
     -- Raise an error if the goal is not proved
     if r.isSome then throwError "Goal not proved"
-  let customAssumTac : TacticM Unit := do
-    withTraceNode `Progress (fun _ => pure m!"Attempting to solve with `singleAssumptionTac`") do
-    singleAssumptionTacCore singleAssumptionTacDtree
+  let simpTac := if config.simpStar then [simpTac] else []
+
+  /- **by ...**: -/
   let env ← getEnv -- We need the original environment below
   /- Also use the tactic provided by the user, if there is -/
   let byTac := match byTacStx with
@@ -784,36 +815,34 @@ def evalProgressCore (async : Bool) (keepPretty : Option Name) (withArg: Option 
       evalTactic tacticCode
       g.assign (← Async.inlineFreshProofs env (← instantiateMVarsProfiling g') (rec := true))
     ]
+
+  /- **Putting everything together** -/
+  let allTacs := simpTac ++ grindTac ++ scalarTac ++ byTac
   let solvePreconditionTac :=
     withMainContext do
     withTraceNode `Progress (fun _ => pure m!"Trying to solve a precondition") do
     trace[Progress] "Precondition: {← getMainGoal}"
     try
-      let useGrind := true -- TODO: turn this into a config
-      if useGrind then
-        firstTacSolve (grindTac :: byTac)
-      else
-        firstTacSolve ([simpTac, scalarTac] ++ byTac)
+      firstTacSolve allTacs
       trace[Progress] "Precondition solved!"
     catch _ =>
       trace[Progress] "Precondition not solved"
   let args : Args := {
-    async, keepPretty, ids, assumTac := customAssumTac, solvePreconditionTac, byTacSyntax := byTacStx
+    async := config.async,
+    inferGhostVars := config.inferGhostVars,
+    keepPretty, ids, assumTac := customAssumTac,
+    solvePreconditionTac, byTacSyntax := byTacStx
   }
   let (goals, usedTheorem) ← progressAsmsOrLookupTheorem args withArg
   trace[Progress] "Progress done"
   return ⟨ goals, usedTheorem ⟩
 
-def asyncOption : Bool := false
-
 def evalProgress
-  (config : Config)
-  (async : Bool)
-  (keepPretty : Option Name) (withArg: Option Expr) (ids: Array (Option Name))
+  (config : Config) (keepPretty : Option Name) (withArg: Option Expr) (ids: Array (Option Name))
   (byTac : Option Syntax.Tactic)
   : TacticM UsedTheorem := do
   focus do
-  let ⟨goals, usedTheorem⟩ ← evalProgressCore async keepPretty withArg ids byTac
+  let ⟨goals, usedTheorem⟩ ← evalProgressCore config keepPretty withArg ids byTac
   -- Wait for all the proof attempts to finish
   let mut sgs := #[]
   for (mvarId, proof) in goals.preconditions do
@@ -842,15 +871,15 @@ post-condition, before trying to solve the preconditions.
 For instance, given the goal:
 ```lean
 h : 2 * (a.val + 1) < U32.max
-⊢ ∃ c, (do
+⊢ (do
   let b ← a + 1#u32
-  2 * b) = ok c ∧ c > 0
+  2 * b) ⦃ c => c > 0 ⦄
 ```
 `progress as ⟨ b ⟩` will lookup the theorem:
 ```lean
 theorem UScalar.add_spec (x y : UScalar ty) (h : x.val + y.val < UScalar.max ty) :
-  ∃ z, UScalar.add x y = ok z ∧
-  z.val = x.val + y.val
+  UScalar.add x y ⦃ z => z.val = x.val + y.val ⦄
+
 ```
 instantiate it with `x := a` and `y := 1#u32`, (attempt to) prove the precondition
 `a.val + 1 < U32.max`, introduce the free variable `b` in the context together
@@ -860,7 +889,7 @@ resulting in:
 h : 2 * (a.val + 1) < U32.max
 b : U32
 h_b : b.val = a.val + 1
-⊢ ∃ c, 2 * b = ok c ∧ c > 0
+⊢ 2 * b ⦃ c => c > 0 ⦄
 ```
 
 Note that `progress` is able to use the current theorem when doing recursive proofs.
@@ -882,14 +911,17 @@ The user can provide several optional arguments:
   If there are more names than variables/conditions, a warning is displayed.
 - `by <tactic>`: use the given tactic to solve the preconditions.
 - `progress?`: displays the name of the theorem/assumption used.
+- `progress` has various other options to, for instance, tweak the calls to `grind`.
+  The syntax is, e.g.: `progress +splitIte (splits := 6)`.
+  See `Aeneas.Progress.Config` for the full set of options.
 
 **`progress?`**: displays the name of the theorem used.
 
 **Alternative syntax:**
 The `progress` tactic also supports the following syntax:
-`let ⟨ id1, id2, ... ⟩ ← <withArg> by <tactic>`
+`let ⟨ id1, id2, ... ⟩ ←[+splitIte (splits := 6)]? <withArg> (by <tactic>)?`
 which is equivalent to:
-`progress with <withArg> as ⟨ id1, id2, ... ⟩ by <tactic>`
+`progress +splitIte (splits := 6) with <withArg> as ⟨ id1, id2, ... ⟩ by <tactic>`
 
 **The `progress` attribute:**
 To make a theorem available for `progress`, the user can tag it with the
@@ -923,13 +955,14 @@ of `progress*` for more details.
 -/
 elab (name := progress) "progress" args:progressArgs : tactic => do
   let (config, withArg, ids, byTac) ← parseProgressArgs args
-  evalProgress config asyncOption none withArg ids byTac *> return ()
+  evalProgress config none withArg ids byTac *> return ()
 
 @[inherit_doc progress]
 elab tk:"progress?" args:progressArgs : tactic => do
   let (config, withArg, ids, byTac) ← parseProgressArgs args
-  let stats ← evalProgress config asyncOption none withArg ids byTac
+  let stats ← evalProgress config none withArg ids byTac
   let mut stxArgs := args.raw
+  -- Update the syntax to add the `with thm`
   if stxArgs[1].isNone then
     let withArg := mkNullNode #[mkAtom "with", ← stats.toSyntax]
     stxArgs := stxArgs.setArg 1 withArg
@@ -937,14 +970,16 @@ elab tk:"progress?" args:progressArgs : tactic => do
   let fmt ← PrettyPrinter.ppCategory ``Lean.Parser.Tactic.tacticSeq tac
   Meta.Tactic.TryThis.addSuggestion tk fmt.pretty (origSpan? := ← getRef)
 
+syntax optConfig := Parser.Tactic.optConfig
+
 @[inherit_doc progress]
 syntax (name := letProgress) "let" noWs "*" " ⟨ " binderIdent,* " ⟩" colGe
-  " ← " colGe ("*?" <|> "*" <|> term) ("by" tacticSeq)? Parser.Tactic.optConfig : tactic
+  " ← " colGe ("[" Parser.Tactic.optConfig " ] ")? ("*?" <|> "*" <|> term) ("by" tacticSeq)? : tactic
 
 def parseLetProgress
 : TSyntax ``Aeneas.Progress.letProgress ->
   TacticM (Config × Option Expr × Bool × Array (Option Name) × Option Syntax.Tactic)
-| args@`(tactic| let* ⟨ $ids,* ⟩ ← $pspec $[by $byTac]? $config) =>  withMainContext do
+| args@`(tactic| let* ⟨ $ids,* ⟩ ← $[[$config]]? $pspec $[by $byTac]?) =>  withMainContext do
   trace[Progress] "Progress arguments: {args.raw}"
   let ((withThm, suggest) : (Option Expr × Bool)) ← do
     /- We have to make a case disjunction, because if we treat identifiers like
@@ -976,7 +1011,8 @@ def parseLetProgress
   let ids := ids.getElems.map fun
       | `(binderIdent| $name:ident) => some name.getId
       | _ => none
-  let config ← (← elabPartialConfig config).toConfig
+  let config ← match config with | some cfg => pure cfg | none => `(Lean.Parser.Tactic.optConfig|)
+  let config ← elabPartialConfig config
   let byTac : Option Syntax.Tactic := match byTac with
     | none => none
     | some byTac => some ⟨byTac.raw⟩
@@ -987,12 +1023,12 @@ def parseLetProgress
 elab tk:letProgress : tactic => do
   withMainContext do
   let (config, withArg, suggest, ids, byTac) ← parseLetProgress tk
-  let stats ← evalProgress config asyncOption (some (.str .anonymous "_")) withArg ids byTac
+  let stats ← evalProgress config (some (.str .anonymous "_")) withArg ids byTac
   let mut stxArgs := tk.raw
   if suggest then
     trace[Progress] "suggest is true"
     let withArg ← stats.toSyntax
-    stxArgs := stxArgs.setArg 6 withArg
+    stxArgs := stxArgs.setArg 7 withArg
     let stxArgs' : TSyntax `Aeneas.Progress.letProgress := ⟨ stxArgs ⟩
     trace[Progress] "stxArgs': {stxArgs}"
     Meta.Tactic.TryThis.addSuggestion tk stxArgs' (origSpan? := ← getRef)

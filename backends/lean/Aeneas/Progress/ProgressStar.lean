@@ -295,7 +295,9 @@ namespace ProgressStar
 abbrev traceGoalWithNode := Progress.traceGoalWithNode
 
 structure Config where
-  async : Bool := false
+  progressConfig : Progress.Config
+  /-- We need the original configuration syntax to generate the proof script -/
+  configSyntax : Option (TSyntax `Lean.Parser.Tactic.optConfig)
   preconditionTac: Option Syntax.Tactic := none
   /-- Should we use the special syntax `let* ⟨ ...⟩ ← ...` or the more standard syntax `progress with ... as ⟨ ... ⟩`? -/
   prettyPrintedProgress : Bool := true
@@ -548,7 +550,8 @@ where
       /- Attempt to finish with a tactic -/
       -- TODO: don't use syntax
       -- TODO: use global options
-      let grindTac : TacticM Unit := Progress.evalAGrindWithPreprocess
+      let grindTac : TacticM Unit :=
+        Progress.evalAGrindWithPreprocess cfg.progressConfig.withGroundSimprocs cfg.progressConfig.toGrindConfig
       -- TODO: add the tactic given by the user
       let tacStx : IO.Promise Syntax.Tactic ← IO.Promise.new
       let rec tryFinish (tacl : List (String × Syntax.Tactic × TacticM Unit)) : TacticM Unit := do
@@ -572,7 +575,7 @@ where
             tacStx.resolve stx
           | none => tryFinish tacl
       let info' ← do
-        if cfg.async then
+        if cfg.progressConfig.async then
           let proof ← Async.asyncRunTactic (tryFinish [("grind", ← `(tactic| agrind), grindTac)])
           let proof := proof.result?.map (fun x => match x with | none | some none => none | some (some x) => some x)
           let info' : Info ← pure { script := .tacs #[.task tacStx.result?], subgoals := #[(mvarId, some (TaskOrDone.task proof))] }
@@ -602,21 +605,37 @@ where
         else pure mainGoal.goal
       /- Generate the tactic scripts for the preconditions -/
       let currTac ←
-        -- TODO: how to factor this out?
         if cfg.prettyPrintedProgress then
+          -- TODO: how to factor this out?
+          let config ←
+            match cfg.configSyntax with
+            | none => `(Lean.Parser.Tactic.optConfig|)
+            | some cfg => pure cfg
           match cfg.preconditionTac with
-          | none => `(tactic| let* ⟨$ids,*⟩ ← $(←usedTheorem.toSyntax))
-          | some tac => `(tactic| let* ⟨$ids,*⟩ ← $(←usedTheorem.toSyntax) by $(#[tac])*)
+          | none =>
+            if let some cfg := cfg.configSyntax then
+              `(tactic| let* ⟨$ids,*⟩ ←[$cfg] $(←usedTheorem.toSyntax))
+            else
+              `(tactic| let* ⟨$ids,*⟩ ← $(←usedTheorem.toSyntax))
+          | some tac =>
+            if let some cfg := cfg.configSyntax then
+              `(tactic| let* ⟨$ids,*⟩ ←[$cfg] $(←usedTheorem.toSyntax) by $(#[tac])*)
+            else
+              `(tactic| let* ⟨$ids,*⟩ ← $(←usedTheorem.toSyntax) by $(#[tac])*)
         else
+          let config ←
+            match cfg.configSyntax with
+            | none => `(Lean.Parser.Tactic.optConfig|)
+            | some cfg => pure cfg
           if ids.isEmpty
           then
             match cfg.preconditionTac with
-            | none => `(tactic| progress with $(←usedTheorem.toSyntax))
-            | some tac => `(tactic| progress with $(←usedTheorem.toSyntax) by $(#[tac])*)
+            | none => `(tactic| progress $config with $(←usedTheorem.toSyntax))
+            | some tac => `(tactic| progress $config with $(←usedTheorem.toSyntax) by $(#[tac])*)
           else
             match cfg.preconditionTac with
-            | none => `(tactic| progress with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩)
-            | some tac => `(tactic| progress with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩ by $(#[tac])*)
+            | none => `(tactic| progress $config with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩)
+            | some tac => `(tactic| progress $config with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩ by $(#[tac])*)
       let sorryStx ← `(tactic|· sorry)
       let preconditionsScript : Array (TaskOrDone (Option Syntax.Tactic)) := preconditions.map fun (_, p) =>
         match p with
@@ -682,7 +701,7 @@ where
       return (infos, mkStx)
 
   tryProgress (cfg : Config) := do
-    try some <$> Progress.evalProgressCore cfg.async (some (.str .anonymous "_")) none #[] cfg.preconditionTac
+    try some <$> Progress.evalProgressCore cfg.progressConfig (some (.str .anonymous "_")) none #[] cfg.preconditionTac
     catch _ => pure none
 
   makeIds (base: Name) (numElem numPost : Nat) (defaultId := "x"): Array (TSyntax ``Lean.binderIdent) :=
@@ -704,9 +723,9 @@ where
     let binderIdents := names.map nameToBinderIdent
     Lean.mkNode ``Lean.Parser.Tactic.caseArg #[tag, mkNullNode (args := binderIdents)]
 
-syntax «progress*_args» := (num)? ("by" tacticSeq)?
-def parseArgs: TSyntax `Aeneas.ProgressStar.«progress*_args» → CoreM (Config × Option Nat)
-| `(«progress*_args»| $(fuel)? $[by $preconditionTac:tacticSeq]?) => do
+syntax «progress*_args» := (num)? Lean.Parser.Tactic.optConfig ("by" tacticSeq)?
+def parseArgs: TSyntax `Aeneas.ProgressStar.«progress*_args» → TermElabM (Config × Option Nat)
+| `(«progress*_args»| $(fuel)? $config $[by $preconditionTac:tacticSeq]?) => do
   withTraceNode `Progress (fun _ => pure m!"parseArgs") do
   let fuel ← do match fuel with
     | none => pure none
@@ -714,13 +733,16 @@ def parseArgs: TSyntax `Aeneas.ProgressStar.«progress*_args» → CoreM (Config
       match fuel.raw.isNatLit? with
       | some fuel => pure fuel
       | none => throwUnsupportedSyntax
+  let progressConfig ← Progress.elabPartialConfig config
+  -- TODO: find a simpler way of checking whether the syntax is empty
+  let configSyntax := if (Aeneas.Meta.PartialConfig.decomposeOptConfig config).isEmpty then none else some config
   let preconditionTac ← do
     match preconditionTac with
-    | none => pure {preconditionTac := none}
+    | none => pure { progressConfig, configSyntax, preconditionTac := none }
     | some preconditionTac => do
       let preconditionTac : Syntax.Tactic := ⟨preconditionTac.raw⟩
       trace[Progress] "preconditionTac: {preconditionTac}"
-      pure {preconditionTac}
+      pure { progressConfig, configSyntax, preconditionTac }
   pure (preconditionTac, fuel)
 | _ => throwUnsupportedSyntax
 
@@ -730,7 +752,7 @@ Its variant `progress*?` allows automatically generating the equivalent proof sc
 -/
 syntax (name := progressStar) "progress" noWs ("*" <|> "*?") «progress*_args»: tactic
 
-@[tactic progressStar]
+@[tactic progressStar, inherit_doc Progress.progress]
 def evalProgressStarTac : Tactic := fun stx => do
   match stx with
   | `(tactic| progress* $args:«progress*_args») =>
@@ -781,6 +803,19 @@ example (x y : U32) (h : 2 * x.val + 2 * y.val + 4 ≤ U32.max) :
   add1 x y ⦃ _ => True ⦄ := by
   unfold add1
   progress*?
+
+/--
+info: Try this:
+
+  [apply]     let* ⟨ x2, x2_post ⟩ ← [ +scalarTac -grind ] U32.add_spec
+    let* ⟨ x3, x3_post ⟩ ← [ +scalarTac -grind ] U32.add_spec
+    let* ⟨ ⟩ ← [ +scalarTac -grind ] U32.add_spec
+-/
+#guard_msgs in
+example (x y : U32) (h : 2 * x.val + 2 * y.val + 4 ≤ U32.max) :
+  add1 x y ⦃ _ => True ⦄ := by
+  unfold add1
+  progress*? +scalarTac -grind
 
 /--
 error: unsolved goals

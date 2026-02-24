@@ -526,7 +526,8 @@ def getMatchingAssumptions (type : Expr) : MetaM (List (LocalDecl × Name)) := d
 
 def singleAssumptionTacPreprocess := filterAssumptionTacPreprocess
 
-def singleAssumptionTacCore (dtree : DiscrTree FVarId) : TacticM Unit := do
+/-- `instMVars`: if `true`, we allow instantiating meta-variables -/
+def singleAssumptionTacCore (dtree : DiscrTree FVarId) (instMVars : Bool) : TacticM Unit := do
   withMainContext do
   let mvarId ← getMainGoal
   mvarId.checkNotAssigned `sassumption
@@ -537,7 +538,7 @@ def singleAssumptionTacCore (dtree : DiscrTree FVarId) : TacticM Unit := do
     trace[Utils] "The goal does not contain meta-variables"
     unless ← filterAssumptionTacCore dtree do
       throwTacticEx `sassumption mvarId
-  else
+  else if instMVars then
     trace[Utils] "The goal contains meta-variables"
     /- There are meta-variables that we need to instantiate
 
@@ -559,6 +560,7 @@ def singleAssumptionTacCore (dtree : DiscrTree FVarId) : TacticM Unit := do
       -- Several assumptions
       let fvars := fvars.map Prod.snd
       throwError "Several assumptions match the goal: {fvars}"
+  else throwError "Could not find an assumption matching the goal"
 
 /- Like the assumption tactic, but if the goal contains meta-variables it applies an assumption only
    if there is a single assumption matching the goal. Aborts if several assumptions match the goal.
@@ -567,7 +569,7 @@ def singleAssumptionTacCore (dtree : DiscrTree FVarId) : TacticM Unit := do
 -/
 def singleAssumptionTac : TacticM Unit := do
   let dtree ← singleAssumptionTacPreprocess
-  singleAssumptionTacCore dtree
+  singleAssumptionTacCore dtree true
 
 elab "sassumption " : tactic => do singleAssumptionTac
 

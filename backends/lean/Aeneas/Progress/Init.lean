@@ -57,11 +57,18 @@ initialize progressPostSimprocExt : Simp.SimprocExtension ←
 -/
 
 structure Config where
-  /-- Use `scalar_tac` (and `simp`) to discharge preconditions -/
-  scalarTac : Bool := false
+  /- **DO NOT** use this: this is experimental and triggers bugs. -/
+  async : Bool := false
+  /-- Attempt to discharge preconditions by matching them against local assumptions. -/
+  assumTac : Bool := true
   /-- Attempt to infer the ghost variables (variables of progress theorems
-      that are not bound in the function call) -/
+      that are not bound in the function call). This requires `assumTac` to
+      be `true`. -/
   inferGhostVars : Bool := true
+  /-- Use `scalar_tac` to discharge preconditions -/
+  scalarTac : Bool := false
+  /- Use `simp [*]` to discharge preconditions -/
+  simpStar : Bool := false
   /-- Use `grind` to discharge preconditions -/
   grind : Bool := true
   /-- Use the ground simp procedures when calling `grind` -/
@@ -84,8 +91,15 @@ structure Config where
   instances : Nat  := 1000
   /--`grind` parameter: see `Lean.Grind.Config` -/
   canonHeartbeats : Nat := 1000
+deriving Repr
 
-declare_partial_config_elab Config elabPartialConfig PartialConfig toConfig aeneas.progress
+def Config.toGrindConfig (cfg : Config) : Grind.Config :=
+  let { async := _, assumTac := _, inferGhostVars := _, scalarTac := _, simpStar := _,
+        grind := _, withGroundSimprocs := _,
+        splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats } := cfg
+  { splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats }
+
+declare_partial_config_elab Config elabPartialConfig aeneas.progress
 
 /-! # Attribute: `progress` -/
 
