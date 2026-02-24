@@ -194,6 +194,8 @@ theorem reverse_loop_spec' {T : Type} (l : CList T) (out : CList T) :
     l'.toList = l.toList.reverse ++ out.toList ⦄ := by
   unfold reverse_loop
   progress*
+  agrind
+
 
 theorem reverse_spec {T : Type} (l : CList T) :
   reverse l ⦃ l' =>
