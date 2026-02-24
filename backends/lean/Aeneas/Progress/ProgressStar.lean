@@ -327,17 +327,21 @@ inductive Script where
 
 structure Info where
   script: Script := (.tacs #[])
+  -- The unassigned meta-variables that are not propositions
+  unassignedVars : Array MVarId := #[]
   -- TODO: this type is overly complex
   subgoals: Array (MVarId × Option (TaskOrDone (Option Expr))) := #[]
 
 structure Result where
   script: Script
+  unassignedVars : Array MVarId
   subgoals: Array MVarId
 
 instance: Append Info where
   append inf1 inf2 := {
     script := .seq inf1.script inf2.script,
     subgoals := inf1.subgoals ++ inf2.subgoals,
+    unassignedVars := inf1.unassignedVars ++ inf2.unassignedVars,
   }
 
 def nameToBinderIdent (n : Name) : TSyntax `Lean.binderIdent :=
@@ -433,9 +437,9 @@ partial def evalProgressStar (cfg: Config) (fuel : Option Nat) : TacticM Result 
           mvarId.withContext do
           let e ← mkAuxTheorem (← mvarId.getType) proof (zetaDelta := true)
           mvarId.assign proof
-    setGoals sgs.toList
-    pure { script := info.script, subgoals := sgs }
-  | none => pure { script := info.script, subgoals := #[] }
+    setGoals (info.unassignedVars.toList ++ sgs.toList)
+    pure { script := info.script, unassignedVars := info.unassignedVars, subgoals := sgs }
+  | none => pure { script := info.script, unassignedVars := #[], subgoals := #[] }
 
 where
   simplifyTarget : TacticM (Info × Option MVarId) := do
@@ -457,7 +461,7 @@ where
         let tac ← `(tactic|simp only [$progress_simps])
         pure #[TaskOrDone.mk (some tac)]
       else pure #[]
-    let info : Info := ⟨ .tacs tac, #[] ⟩
+    let info : Info := ⟨ .tacs tac, #[], #[] ⟩
     if r.isSome then traceGoalWithNode "after simplification"
     else trace[Progress] "goal proved"
     let goal ← do if r.isSome then pure (some (← getMainGoal)) else pure none
@@ -472,7 +476,7 @@ where
       match fuel with
       | none => pure none
       | some fuel =>
-        if fuel = 0 then return { script := .tacs #[], subgoals := #[(← getMainGoal, none)] }
+        if fuel = 0 then return { script := .tacs #[], unassignedVars := #[], subgoals := #[(← getMainGoal, none)] }
         else pure (some (fuel - 1))
     let targetKind ← analyzeTarget
     match targetKind with
@@ -486,8 +490,18 @@ where
         return info
       | some mainGoal =>
         setGoals [mainGoal]
-        let restInfo ← traverseProgram cfg fuel
-        return info ++ restInfo
+        /- Check if there are unassigned meta-variables which are not `Prop`:
+           if it is the case it means there are meta-variables we could not infer, so we stop -/
+        if info.unassignedVars.isEmpty then
+          let restInfo ← traverseProgram cfg fuel
+          return info ++ restInfo
+        else
+          trace[Progress] "Found unassigned meta-variables of type ≠ Prop: stopping"
+          let info' : Info ← pure
+            { script := .tacs #[.done (← `(tactic| sorry))],
+              unassignedVars := #[],
+              subgoals := #[(mainGoal, none)] }
+          pure (info ++ info')
     | .switch bfInfo => do
       let contsTaggedVals ←
         bfInfo.branches.mapM fun br => do
@@ -578,11 +592,17 @@ where
         if cfg.progressConfig.async then
           let proof ← Async.asyncRunTactic (tryFinish [("grind", ← `(tactic| agrind), grindTac)])
           let proof := proof.result?.map (fun x => match x with | none | some none => none | some (some x) => some x)
-          let info' : Info ← pure { script := .tacs #[.task tacStx.result?], subgoals := #[(mvarId, some (TaskOrDone.task proof))] }
+          let info' : Info ← pure
+            { script := .tacs #[.task tacStx.result?],
+              unassignedVars := #[],
+              subgoals := #[(mvarId, some (TaskOrDone.task proof))] }
           pure info'
         else
           tryFinish [("grind", ← `(tactic| agrind), grindTac)]
-          let info' : Info ← pure { script := .tacs #[.task tacStx.result?], subgoals := #[(mvarId, none)] }
+          let info' : Info ← pure
+            { script := .tacs #[.task tacStx.result?],
+              unassignedVars := #[],
+              subgoals := #[(mvarId, none)] }
           pure info'
       pure (info ++ info', none)
 
@@ -637,6 +657,8 @@ where
             | none => `(tactic| progress $config with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩)
             | some tac => `(tactic| progress $config with $(←usedTheorem.toSyntax) as ⟨$ids,*⟩ by $(#[tac])*)
       let sorryStx ← `(tactic|· sorry)
+      let unassignedVarsScript : Array (TaskOrDone (Option Syntax.Tactic)) :=
+        unassignedVars.map fun _ => TaskOrDone.mk (some sorryStx)
       let preconditionsScript : Array (TaskOrDone (Option Syntax.Tactic)) := preconditions.map fun (_, p) =>
         match p with
         | .none => TaskOrDone.mk (some sorryStx)
@@ -646,7 +668,8 @@ where
         pure (x, some y)
 
       let info : Info := {
-          script := .tacs (#[TaskOrDone.mk (some currTac)] ++ preconditionsScript),
+          script := .tacs (#[TaskOrDone.mk (some currTac)] ++ unassignedVarsScript ++ preconditionsScript),
+          unassignedVars,
           subgoals := preconditions,
         }
       pure (info, mainGoal)
@@ -689,14 +712,11 @@ where
       let mkStx (infos : List Info) : TacticM Info := do
         unless infos.length == mkBranchesStx.length do
           throwError "onMatch: Expected {mkBranchesStx.length} infos, found {infos.length}"
-        let infos := infos.zip mkBranchesStx
-        let infos ← do infos.mapM fun (info, mkBranchStx) => do
-          let stx ← mkBranchStx info.script
-          pure (info.subgoals.toList, stx)
-        let subgoals := (List.flatten (infos.map Prod.fst)).toArray
-        let branchesStx := infos.map Prod.snd
+        let branchesStx ← (infos.zip mkBranchesStx).mapM fun (info, mkBranchStx) => mkBranchStx info.script
+        let unassignedVars := (List.flatten (infos.map (fun info => info.unassignedVars.toList))).toArray
+        let subgoals := (List.flatten (infos.map (fun info => info.subgoals.toList))).toArray
         let script := Script.split splitStx branchesStx.toArray
-        pure ({ script, subgoals } : Info)
+        pure ({ script, unassignedVars, subgoals } : Info)
 
       return (infos, mkStx)
 
@@ -1079,6 +1099,36 @@ info: Try this:
 example (x y : U32) :
   (lift (core.num.U32.overflowing_add x y)) ⦃ (_, _) => True ⦄ := by
   progress*?
+
+/--
+error: unsolved goals
+case inst
+α : Type
+x : α
+f : α → Result Unit
+f_spec : ∀ (x : α) [Inhabited α], f x ⦃ x✝ => True ⦄
+⊢ Inhabited α
+
+α : Type
+x : α
+f : α → Result Unit
+f_spec : ∀ (x : α) [Inhabited α], f x ⦃ x✝ => True ⦄
+_ : [> let PUnit.unit ← f x <]
+⊢ (do
+      f x
+      ok ()) ⦃
+    x✝ => True ⦄
+-/
+#guard_msgs in
+example {α : Type}
+  (x : α)
+  (f : α → Result Unit) (f_spec : ∀ x, [Inhabited α] → f x ⦃ _ => True ⦄) : --(a : Std.Array α 16#usize) :
+  (do
+    let () ← f x
+    let () ← f x
+    pure ()
+    ) ⦃ _ => True ⦄ := by
+    progress*
 
 end Examples
 
