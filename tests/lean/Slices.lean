@@ -8,14 +8,14 @@ set_option linter.unusedVariables false
 
 namespace slices
 
-/- [slices::slice_subslice_from_shared]:
+/-- [slices::slice_subslice_from_shared]:
    Source: 'tests/src/slices.rs', lines 3:0-5:1 -/
 def slice_subslice_from_shared
   (x : Slice Std.U32) : Result (Slice Std.U32) := do
   core.slice.index.Slice.index (core.slice.index.SliceIndexRangeFromUsizeSlice
     Std.U32) x { start := 0#usize }
 
-/- [slices::slice_subslice_from_mut]:
+/-- [slices::slice_subslice_from_mut]:
    Source: 'tests/src/slices.rs', lines 7:0-9:1 -/
 def slice_subslice_from_mut
   (x : Slice Std.U32) :
@@ -25,7 +25,7 @@ def slice_subslice_from_mut
     (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U32) x
     { start := 0#usize }
 
-/- [slices::split_at]:
+/-- [slices::split_at]:
    Source: 'tests/src/slices.rs', lines 11:0-13:1 -/
 def split_at
   {T : Type} (x : Slice T) (n : Std.Usize) :
@@ -33,7 +33,7 @@ def split_at
   := do
   core.slice.Slice.split_at x n
 
-/- [slices::split_at_mut]:
+/-- [slices::split_at_mut]:
    Source: 'tests/src/slices.rs', lines 15:0-17:1 -/
 def split_at_mut
   {T : Type} (x : Slice T) (n : Std.Usize) :
@@ -43,7 +43,7 @@ def split_at_mut
   let back := fun p1 => split_at_mut_back p1
   ok (p, back)
 
-/- [slices::swap]:
+/-- [slices::swap]:
    Source: 'tests/src/slices.rs', lines 19:0-21:1 -/
 def swap
   {T : Type} (x : Slice T) (n : Std.Usize) (m : Std.Usize) :
@@ -51,7 +51,7 @@ def swap
   := do
   core.slice.Slice.swap x n m
 
-/- [slices::from_vec]:
+/-- [slices::from_vec]:
    Source: 'tests/src/slices.rs', lines 23:0-25:1 -/
 def from_vec {T : Type} (x : alloc.vec.Vec T) : Result (Slice T) := do
   alloc.vec.FromBoxSliceVec.from x

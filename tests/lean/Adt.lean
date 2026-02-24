@@ -8,27 +8,27 @@ set_option linter.unusedVariables false
 
 namespace adt
 
-/- [adt::Struct]
+/-- [adt::Struct]
    Source: 'tests/src/adt.rs', lines 3:0-5:1 -/
 structure Struct where
   len : Std.Usize
 
-/- [adt::{adt::Struct}::len]:
+/-- [adt::{adt::Struct}::len]:
    Source: 'tests/src/adt.rs', lines 8:4-10:5 -/
 def Struct.impl.len (self : Struct) : Result Std.Usize := do
   ok self.len
 
-/- [adt::{adt::Struct}::f]:
+/-- [adt::{adt::Struct}::f]:
    Source: 'tests/src/adt.rs', lines 11:4-11:13 -/
 def Struct.f : Result Unit := do
   ok ()
 
-/- [adt::BigStructName]
+/-- [adt::BigStructName]
    Source: 'tests/src/adt.rs', lines 14:0-14:23 -/
 @[reducible]
 def BigStructName := Unit
 
-/- [adt::BigStruct]
+/-- [adt::BigStruct]
    Source: 'tests/src/adt.rs', lines 17:0-24:2 -/
 def BigStruct :=
   BigStructName × BigStructName × BigStructName × BigStructName ×

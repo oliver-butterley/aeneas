@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace bst
 
-/- [bst::Ordering]
+/-- [bst::Ordering]
    Source: 'src/bst.rs', lines 5:0-9:1 -/
 @[discriminant isize]
 inductive Ordering where
@@ -16,12 +16,12 @@ inductive Ordering where
 | Equal : Ordering
 | Greater : Ordering
 
-/- Trait declaration: [bst::Ord]
+/-- Trait declaration: [bst::Ord]
    Source: 'src/bst.rs', lines 11:0-13:1 -/
 structure Ord (Self : Type) where
   cmp : Self → Self → Result Ordering
 
-/- [bst::Node]
+/-- [bst::Node]
    Source: 'src/bst.rs', lines 15:0-19:1 -/
 inductive Node (T : Type) where
 | mk : T → Option (Node T) → Option (Node T) → Node T
@@ -46,7 +46,7 @@ theorem Node.right._simpLemma_ {T : Type} (value : T) (left : Option (Node T))
   (right : Option (Node T)) : (Node.mk value left right).right = right :=
   by rfl
 
-/- [bst::TreeSet]
+/-- [bst::TreeSet]
    Source: 'src/bst.rs', lines 23:0-25:1 -/
 structure TreeSet (T : Type) where
   root : Option (Node T)

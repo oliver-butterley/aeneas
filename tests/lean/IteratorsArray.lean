@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace iterators_array
 
-/- [iterators_array::iter_array]: loop 0:
+/-- [iterators_array::iter_array]: loop 0:
    Source: 'tests/src/iterators-array.rs', lines 6:4-8:5 -/
 def iter_array_loop
   (x : Std.I32) (iter : alloc.vec.into_iter.IntoIter Std.U32) :
@@ -23,7 +23,7 @@ def iter_array_loop
               iter_array_loop x1 iter1
 partial_fixpoint
 
-/- [iterators_array::iter_array]:
+/-- [iterators_array::iter_array]:
    Source: 'tests/src/iterators-array.rs', lines 3:0-9:1 -/
 def iter_array : Result Unit := do
   let v ←

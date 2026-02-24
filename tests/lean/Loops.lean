@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace loops
 
-/- [loops::iter]: loop 0:
+/-- [loops::iter]: loop 0:
    Source: 'tests/src/loops.rs', lines 6:4-8:5 -/
 def iter_loop (max : Std.U32) (i : Std.U32) : Result Std.U32 := do
   if i < max
@@ -17,13 +17,13 @@ def iter_loop (max : Std.U32) (i : Std.U32) : Result Std.U32 := do
   else ok i
 partial_fixpoint
 
-/- [loops::iter]:
+/-- [loops::iter]:
    Source: 'tests/src/loops.rs', lines 4:0-11:1 -/
 @[reducible]
 def iter (max : Std.U32) : Result Std.U32 := do
   iter_loop max 0#u32
 
-/- [loops::sum]: loop 0:
+/-- [loops::sum]: loop 0:
    Source: 'tests/src/loops.rs', lines 17:4-20:5 -/
 def sum_loop (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
   if i < max
@@ -33,13 +33,13 @@ def sum_loop (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
   else ok s
 partial_fixpoint
 
-/- [loops::sum]:
+/-- [loops::sum]:
    Source: 'tests/src/loops.rs', lines 14:0-24:1 -/
 def sum (max : Std.U32) : Result Std.U32 := do
   let s ← sum_loop max 0#u32 0#u32
   s * 2#u32
 
-/- [loops::sum_with_mut_borrows]: loop 0:
+/-- [loops::sum_with_mut_borrows]: loop 0:
    Source: 'tests/src/loops.rs', lines 32:4-37:5 -/
 def sum_with_mut_borrows_loop
   (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
@@ -51,13 +51,13 @@ def sum_with_mut_borrows_loop
   else ok s
 partial_fixpoint
 
-/- [loops::sum_with_mut_borrows]:
+/-- [loops::sum_with_mut_borrows]:
    Source: 'tests/src/loops.rs', lines 29:0-41:1 -/
 def sum_with_mut_borrows (max : Std.U32) : Result Std.U32 := do
   let s ← sum_with_mut_borrows_loop max 0#u32 0#u32
   s * 2#u32
 
-/- [loops::sum_with_shared_borrows]: loop 0:
+/-- [loops::sum_with_shared_borrows]: loop 0:
    Source: 'tests/src/loops.rs', lines 47:4-54:5 -/
 def sum_with_shared_borrows_loop
   (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
@@ -69,13 +69,13 @@ def sum_with_shared_borrows_loop
   else ok s
 partial_fixpoint
 
-/- [loops::sum_with_shared_borrows]:
+/-- [loops::sum_with_shared_borrows]:
    Source: 'tests/src/loops.rs', lines 44:0-58:1 -/
 def sum_with_shared_borrows (max : Std.U32) : Result Std.U32 := do
   let s ← sum_with_shared_borrows_loop max 0#u32 0#u32
   s * 2#u32
 
-/- [loops::sum_array]: loop 0:
+/-- [loops::sum_array]: loop 0:
    Source: 'tests/src/loops.rs', lines 63:4-66:5 -/
 def sum_array_loop
   {N : Std.Usize} (a : Array Std.U32 N) (i : Std.Usize) (s : Std.U32) :
@@ -90,13 +90,13 @@ def sum_array_loop
   else ok s
 partial_fixpoint
 
-/- [loops::sum_array]:
+/-- [loops::sum_array]:
    Source: 'tests/src/loops.rs', lines 60:0-68:1 -/
 @[reducible]
 def sum_array {N : Std.Usize} (a : Array Std.U32 N) : Result Std.U32 := do
   sum_array_loop a 0#usize 0#u32
 
-/- [loops::clear]: loop 0:
+/-- [loops::clear]: loop 0:
    Source: 'tests/src/loops.rs', lines 74:4-77:5 -/
 def clear_loop
   (v : alloc.vec.Vec Std.U32) (i : Std.Usize) :
@@ -114,20 +114,20 @@ def clear_loop
   else ok v
 partial_fixpoint
 
-/- [loops::clear]:
+/-- [loops::clear]:
    Source: 'tests/src/loops.rs', lines 72:0-78:1 -/
 @[reducible]
 def clear (v : alloc.vec.Vec Std.U32) : Result (alloc.vec.Vec Std.U32) := do
   clear_loop v 0#usize
 
-/- [loops::List]
+/-- [loops::List]
    Source: 'tests/src/loops.rs', lines 80:0-83:1 -/
 @[discriminant isize]
 inductive List (T : Type) where
 | Cons : T → List T → List T
 | Nil : List T
 
-/- [loops::list_mem]: loop 0:
+/-- [loops::list_mem]: loop 0:
    Source: 'tests/src/loops.rs', lines 87:4-95:1 -/
 def list_mem_loop (x : Std.U32) (ls : List Std.U32) : Result Bool := do
   match ls with
@@ -137,13 +137,13 @@ def list_mem_loop (x : Std.U32) (ls : List Std.U32) : Result Bool := do
   | List.Nil => ok false
 partial_fixpoint
 
-/- [loops::list_mem]:
+/-- [loops::list_mem]:
    Source: 'tests/src/loops.rs', lines 86:0-95:1 -/
 @[reducible]
 def list_mem (x : Std.U32) (ls : List Std.U32) : Result Bool := do
   list_mem_loop x ls
 
-/- [loops::list_nth_mut]: loop 0:
+/-- [loops::list_nth_mut]: loop 0:
    Source: 'tests/src/loops.rs', lines 98:4-107:1 -/
 def list_nth_mut_loop
   {T : Type} (ls : List T) (i : Std.U32) : Result (T × (T → List T)) := do
@@ -160,14 +160,14 @@ def list_nth_mut_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut]:
+/-- [loops::list_nth_mut]:
    Source: 'tests/src/loops.rs', lines 97:0-107:1 -/
 @[reducible]
 def list_nth_mut
   {T : Type} (ls : List T) (i : Std.U32) : Result (T × (T → List T)) := do
   list_nth_mut_loop ls i
 
-/- [loops::list_nth_shared]: loop 0:
+/-- [loops::list_nth_shared]: loop 0:
    Source: 'tests/src/loops.rs', lines 111:4-120:1 -/
 def list_nth_shared_loop
   {T : Type} (ls : List T) (i : Std.U32) : Result T := do
@@ -180,13 +180,13 @@ def list_nth_shared_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared]:
+/-- [loops::list_nth_shared]:
    Source: 'tests/src/loops.rs', lines 110:0-120:1 -/
 @[reducible]
 def list_nth_shared {T : Type} (ls : List T) (i : Std.U32) : Result T := do
   list_nth_shared_loop ls i
 
-/- [loops::get_elem_mut]: loop 0:
+/-- [loops::get_elem_mut]: loop 0:
    Source: 'tests/src/loops.rs', lines 124:4-136:1 -/
 def get_elem_mut_loop
   (x : Std.Usize) (ls : List Std.Usize) :
@@ -204,7 +204,7 @@ def get_elem_mut_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::get_elem_mut]:
+/-- [loops::get_elem_mut]:
    Source: 'tests/src/loops.rs', lines 122:0-136:1 -/
 def get_elem_mut
   (slots : alloc.vec.Vec (List Std.Usize)) (x : Std.Usize) :
@@ -218,7 +218,7 @@ def get_elem_mut
                          index_mut_back l
   ok (i, back1)
 
-/- [loops::get_elem_shared]: loop 0:
+/-- [loops::get_elem_shared]: loop 0:
    Source: 'tests/src/loops.rs', lines 140:4-152:1 -/
 def get_elem_shared_loop
   (x : Std.Usize) (ls : List Std.Usize) : Result Std.Usize := do
@@ -229,7 +229,7 @@ def get_elem_shared_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::get_elem_shared]:
+/-- [loops::get_elem_shared]:
    Source: 'tests/src/loops.rs', lines 138:0-152:1 -/
 def get_elem_shared
   (slots : alloc.vec.Vec (List Std.Usize)) (x : Std.Usize) :
@@ -240,18 +240,18 @@ def get_elem_shared
       Std.Usize)) slots 0#usize
   get_elem_shared_loop x ls
 
-/- [loops::id_mut]:
+/-- [loops::id_mut]:
    Source: 'tests/src/loops.rs', lines 154:0-156:1 -/
 def id_mut
   {T : Type} (ls : List T) : Result ((List T) × (List T → List T)) := do
   ok (ls, fun ls1 => ls1)
 
-/- [loops::id_shared]:
+/-- [loops::id_shared]:
    Source: 'tests/src/loops.rs', lines 158:0-160:1 -/
 def id_shared {T : Type} (ls : List T) : Result (List T) := do
   ok ls
 
-/- [loops::list_nth_mut_with_id]: loop 0:
+/-- [loops::list_nth_mut_with_id]: loop 0:
    Source: 'tests/src/loops.rs', lines 165:4-174:1 -/
 def list_nth_mut_with_id_loop
   {T : Type} (i : Std.U32) (ls : List T) : Result (T × (T → List T)) := do
@@ -268,7 +268,7 @@ def list_nth_mut_with_id_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut_with_id]:
+/-- [loops::list_nth_mut_with_id]:
    Source: 'tests/src/loops.rs', lines 163:0-174:1 -/
 def list_nth_mut_with_id
   {T : Type} (ls : List T) (i : Std.U32) : Result (T × (T → List T)) := do
@@ -278,7 +278,7 @@ def list_nth_mut_with_id
                          id_mut_back l
   ok (t, back1)
 
-/- [loops::list_nth_shared_with_id]: loop 0:
+/-- [loops::list_nth_shared_with_id]: loop 0:
    Source: 'tests/src/loops.rs', lines 179:4-188:1 -/
 def list_nth_shared_with_id_loop
   {T : Type} (i : Std.U32) (ls : List T) : Result T := do
@@ -291,14 +291,14 @@ def list_nth_shared_with_id_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared_with_id]:
+/-- [loops::list_nth_shared_with_id]:
    Source: 'tests/src/loops.rs', lines 177:0-188:1 -/
 def list_nth_shared_with_id
   {T : Type} (ls : List T) (i : Std.U32) : Result T := do
   let ls1 ← id_shared ls
   list_nth_shared_with_id_loop i ls1
 
-/- [loops::list_nth_mut_pair]: loop 0:
+/-- [loops::list_nth_mut_pair]: loop 0:
    Source: 'tests/src/loops.rs', lines 198:4-214:1 -/
 def list_nth_mut_pair_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -322,7 +322,7 @@ def list_nth_mut_pair_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut_pair]:
+/-- [loops::list_nth_mut_pair]:
    Source: 'tests/src/loops.rs', lines 193:0-214:1 -/
 def list_nth_mut_pair
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -331,7 +331,7 @@ def list_nth_mut_pair
   let (t, t1, back, back1) ← list_nth_mut_pair_loop ls0 ls1 i
   ok ((t, t1), back, back1)
 
-/- [loops::list_nth_shared_pair]: loop 0:
+/-- [loops::list_nth_shared_pair]: loop 0:
    Source: 'tests/src/loops.rs', lines 222:4-238:1 -/
 def list_nth_shared_pair_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -349,7 +349,7 @@ def list_nth_shared_pair_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared_pair]:
+/-- [loops::list_nth_shared_pair]:
    Source: 'tests/src/loops.rs', lines 217:0-238:1 -/
 @[reducible]
 def list_nth_shared_pair
@@ -358,7 +358,7 @@ def list_nth_shared_pair
   := do
   list_nth_shared_pair_loop ls0 ls1 i
 
-/- [loops::list_nth_mut_pair_merge]: loop 0:
+/-- [loops::list_nth_mut_pair_merge]: loop 0:
    Source: 'tests/src/loops.rs', lines 247:4-257:1 -/
 def list_nth_mut_pair_merge_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -382,7 +382,7 @@ def list_nth_mut_pair_merge_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut_pair_merge]:
+/-- [loops::list_nth_mut_pair_merge]:
    Source: 'tests/src/loops.rs', lines 242:0-257:1 -/
 def list_nth_mut_pair_merge
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -397,7 +397,7 @@ def list_nth_mut_pair_merge
       (ls01, ls11)
   ok ((t, t1), back2)
 
-/- [loops::list_nth_shared_pair_merge]: loop 0:
+/-- [loops::list_nth_shared_pair_merge]: loop 0:
    Source: 'tests/src/loops.rs', lines 265:4-275:1 -/
 def list_nth_shared_pair_merge_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -415,7 +415,7 @@ def list_nth_shared_pair_merge_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared_pair_merge]:
+/-- [loops::list_nth_shared_pair_merge]:
    Source: 'tests/src/loops.rs', lines 260:0-275:1 -/
 @[reducible]
 def list_nth_shared_pair_merge
@@ -424,7 +424,7 @@ def list_nth_shared_pair_merge
   := do
   list_nth_shared_pair_merge_loop ls0 ls1 i
 
-/- [loops::list_nth_mut_shared_pair]: loop 0:
+/-- [loops::list_nth_mut_shared_pair]: loop 0:
    Source: 'tests/src/loops.rs', lines 283:4-293:1 -/
 def list_nth_mut_shared_pair_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -446,7 +446,7 @@ def list_nth_mut_shared_pair_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut_shared_pair]:
+/-- [loops::list_nth_mut_shared_pair]:
    Source: 'tests/src/loops.rs', lines 278:0-293:1 -/
 def list_nth_mut_shared_pair
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -455,7 +455,7 @@ def list_nth_mut_shared_pair
   let (t, t1, back) ← list_nth_mut_shared_pair_loop ls0 ls1 i
   ok ((t, t1), back)
 
-/- [loops::list_nth_mut_shared_pair_merge]: loop 0:
+/-- [loops::list_nth_mut_shared_pair_merge]: loop 0:
    Source: 'tests/src/loops.rs', lines 302:4-312:1 -/
 def list_nth_mut_shared_pair_merge_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -477,7 +477,7 @@ def list_nth_mut_shared_pair_merge_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_mut_shared_pair_merge]:
+/-- [loops::list_nth_mut_shared_pair_merge]:
    Source: 'tests/src/loops.rs', lines 297:0-312:1 -/
 def list_nth_mut_shared_pair_merge
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -486,7 +486,7 @@ def list_nth_mut_shared_pair_merge
   let (t, t1, back) ← list_nth_mut_shared_pair_merge_loop ls0 ls1 i
   ok ((t, t1), back)
 
-/- [loops::list_nth_shared_mut_pair]: loop 0:
+/-- [loops::list_nth_shared_mut_pair]: loop 0:
    Source: 'tests/src/loops.rs', lines 321:4-331:1 -/
 def list_nth_shared_mut_pair_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -508,7 +508,7 @@ def list_nth_shared_mut_pair_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared_mut_pair]:
+/-- [loops::list_nth_shared_mut_pair]:
    Source: 'tests/src/loops.rs', lines 316:0-331:1 -/
 def list_nth_shared_mut_pair
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -517,7 +517,7 @@ def list_nth_shared_mut_pair
   let (t, t1, back) ← list_nth_shared_mut_pair_loop ls0 ls1 i
   ok ((t, t1), back)
 
-/- [loops::list_nth_shared_mut_pair_merge]: loop 0:
+/-- [loops::list_nth_shared_mut_pair_merge]: loop 0:
    Source: 'tests/src/loops.rs', lines 340:4-350:1 -/
 def list_nth_shared_mut_pair_merge_loop
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -539,7 +539,7 @@ def list_nth_shared_mut_pair_merge_loop
   | List.Nil => fail panic
 partial_fixpoint
 
-/- [loops::list_nth_shared_mut_pair_merge]:
+/-- [loops::list_nth_shared_mut_pair_merge]:
    Source: 'tests/src/loops.rs', lines 335:0-350:1 -/
 def list_nth_shared_mut_pair_merge
   {T : Type} (ls0 : List T) (ls1 : List T) (i : Std.U32) :
@@ -548,7 +548,7 @@ def list_nth_shared_mut_pair_merge
   let (t, t1, back) ← list_nth_shared_mut_pair_merge_loop ls0 ls1 i
   ok ((t, t1), back)
 
-/- [loops::ignore_input_mut_borrow]: loop 0:
+/-- [loops::ignore_input_mut_borrow]: loop 0:
    Source: 'tests/src/loops.rs', lines 355:4-357:5 -/
 def ignore_input_mut_borrow_loop (i : Std.U32) : Result Unit := do
   if i > 0#u32
@@ -557,13 +557,13 @@ def ignore_input_mut_borrow_loop (i : Std.U32) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::ignore_input_mut_borrow]:
+/-- [loops::ignore_input_mut_borrow]:
    Source: 'tests/src/loops.rs', lines 354:0-358:1 -/
 def ignore_input_mut_borrow (_a : Std.U32) (i : Std.U32) : Result Std.U32 := do
   ignore_input_mut_borrow_loop i
   ok _a
 
-/- [loops::incr_ignore_input_mut_borrow]: loop 0:
+/-- [loops::incr_ignore_input_mut_borrow]: loop 0:
    Source: 'tests/src/loops.rs', lines 364:4-366:5 -/
 def incr_ignore_input_mut_borrow_loop (i : Std.U32) : Result Unit := do
   if i > 0#u32
@@ -572,7 +572,7 @@ def incr_ignore_input_mut_borrow_loop (i : Std.U32) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::incr_ignore_input_mut_borrow]:
+/-- [loops::incr_ignore_input_mut_borrow]:
    Source: 'tests/src/loops.rs', lines 362:0-367:1 -/
 def incr_ignore_input_mut_borrow
   (a : Std.U32) (i : Std.U32) : Result Std.U32 := do
@@ -580,7 +580,7 @@ def incr_ignore_input_mut_borrow
   incr_ignore_input_mut_borrow_loop i
   ok a1
 
-/- [loops::ignore_input_shared_borrow]: loop 0:
+/-- [loops::ignore_input_shared_borrow]: loop 0:
    Source: 'tests/src/loops.rs', lines 372:4-374:5 -/
 def ignore_input_shared_borrow_loop (i : Std.U32) : Result Unit := do
   if i > 0#u32
@@ -589,19 +589,19 @@ def ignore_input_shared_borrow_loop (i : Std.U32) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::ignore_input_shared_borrow]:
+/-- [loops::ignore_input_shared_borrow]:
    Source: 'tests/src/loops.rs', lines 371:0-375:1 -/
 def ignore_input_shared_borrow
   (_a : Std.U32) (i : Std.U32) : Result Std.U32 := do
   ignore_input_shared_borrow_loop i
   ok _a
 
-/- [loops::issue500_1::bar]:
+/-- [loops::issue500_1::bar]:
    Source: 'tests/src/loops.rs', lines 379:4-379:28 -/
 def issue500_1.bar (_a : Bool) : Result Bool := do
   ok _a
 
-/- [loops::issue500_1]: loop 0:
+/-- [loops::issue500_1]: loop 0:
    Source: 'tests/src/loops.rs', lines 382:4-384:5 -/
 def issue500_1_loop (a : Bool) : Result Bool := do
   if 0#i32 < 0#i32
@@ -610,39 +610,39 @@ def issue500_1_loop (a : Bool) : Result Bool := do
   else ok a
 partial_fixpoint
 
-/- [loops::issue500_1]:
+/-- [loops::issue500_1]:
    Source: 'tests/src/loops.rs', lines 378:0-386:1 -/
 @[reducible] def issue500_1 (s : Bool) : Result Bool := do
                issue500_1_loop s
 
-/- [loops::issue500_2::bar]:
+/-- [loops::issue500_2::bar]:
    Source: 'tests/src/loops.rs', lines 391:4-391:33 -/
 def issue500_2.bar
   (_a : Array Bool 1#usize) : Result (Array Bool 1#usize) := do
   ok _a
 
-/- [loops::issue500_2::A]
+/-- [loops::issue500_2::A]
    Source: 'tests/src/loops.rs', lines 390:4-390:24 -/
 @[reducible]
 def issue500_2.A := Array Bool 1#usize
 
-/- [loops::issue500_2]: loop 0:
+/-- [loops::issue500_2]: loop 0:
    Source: 'tests/src/loops.rs', lines 394:4-396:5 -/
 def issue500_2_loop : Result Unit := do
   ok ()
 
-/- [loops::issue500_2]:
+/-- [loops::issue500_2]:
    Source: 'tests/src/loops.rs', lines 389:0-398:1 -/
 def issue500_2 (s : Array Bool 1#usize) : Result (Array Bool 1#usize) := do
   issue500_2_loop
   ok s
 
-/- [loops::issue500_3::A]
+/-- [loops::issue500_3::A]
    Source: 'tests/src/loops.rs', lines 402:4-402:24 -/
 @[reducible]
 def issue500_3.A := Array Bool 1#usize
 
-/- [loops::issue500_3]: loop 0:
+/-- [loops::issue500_3]: loop 0:
    Source: 'tests/src/loops.rs', lines 404:4-404:18 -/
 def issue500_3_loop : Result Unit := do
   if 0#i32 < 0#i32
@@ -650,13 +650,13 @@ def issue500_3_loop : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::issue500_3]:
+/-- [loops::issue500_3]:
    Source: 'tests/src/loops.rs', lines 401:0-406:1 -/
 def issue500_3 (s : Array Bool 1#usize) : Result (Array Bool 1#usize) := do
   issue500_3_loop
   ok s
 
-/- [loops::issue351]: loop 0:
+/-- [loops::issue351]: loop 0:
    Source: 'tests/src/loops.rs', lines 411:4-414:5 -/
 def issue351_loop (t : List Std.U8) (last : Std.U8) : Result Std.U8 := do
   match t with
@@ -664,18 +664,18 @@ def issue351_loop (t : List Std.U8) (last : Std.U8) : Result Std.U8 := do
   | List.Nil => ok last
 partial_fixpoint
 
-/- [loops::issue351]:
+/-- [loops::issue351]:
    Source: 'tests/src/loops.rs', lines 409:0-416:1 -/
 @[reducible]
 def issue351 (h : Std.U8) (t : List Std.U8) : Result Std.U8 := do
   issue351_loop t h
 
-/- [loops::issue270::box_get_borrow]:
+/-- [loops::issue270::box_get_borrow]:
    Source: 'tests/src/loops.rs', lines 420:4-422:5 -/
 def issue270.box_get_borrow {T : Type} (x : T) : Result T := do
   ok x
 
-/- [loops::issue270]: loop 0:
+/-- [loops::issue270]: loop 0:
    Source: 'tests/src/loops.rs', lines 426:8-429:9 -/
 def issue270_loop
   (t : List (List Std.U8)) (last : List Std.U8) : Result (List Std.U8) := do
@@ -686,7 +686,7 @@ def issue270_loop
   | List.Nil => ok last
 partial_fixpoint
 
-/- [loops::issue270]:
+/-- [loops::issue270]:
    Source: 'tests/src/loops.rs', lines 419:0-434:1 -/
 def issue270 (v : List (List Std.U8)) : Result (Option (List Std.U8)) := do
   match v with
@@ -696,7 +696,7 @@ def issue270 (v : List (List Std.U8)) : Result (Option (List Std.U8)) := do
     ok (some last)
   | List.Nil => ok none
 
-/- [loops::issue400_1]: loop 0:
+/-- [loops::issue400_1]: loop 0:
    Source: 'tests/src/loops.rs', lines 440:4-447:5 -/
 def issue400_1_loop
   (back : Std.I32 → (Std.I32 × Std.I32)) (cond : Bool) (y : Std.I32)
@@ -716,14 +716,14 @@ def issue400_1_loop
   else ok (back y)
 partial_fixpoint
 
-/- [loops::issue400_1]:
+/-- [loops::issue400_1]:
    Source: 'tests/src/loops.rs', lines 437:0-448:1 -/
 @[reducible]
 def issue400_1
   (a : Std.I32) (b : Std.I32) (cond : Bool) : Result (Std.I32 × Std.I32) := do
   issue400_1_loop (fun i => (i, b)) cond a 0#i32
 
-/- [loops::issue400_2]: loop 0:
+/-- [loops::issue400_2]: loop 0:
    Source: 'tests/src/loops.rs', lines 455:4-464:5 -/
 def issue400_2_loop
   (back : Std.I32 → Std.I32 → (Std.I32 × Std.I32 × Std.I32))
@@ -746,7 +746,7 @@ def issue400_2_loop
   else ok (y, z, back)
 partial_fixpoint
 
-/- [loops::issue400_2]:
+/-- [loops::issue400_2]:
    Source: 'tests/src/loops.rs', lines 451:0-467:1 -/
 def issue400_2
   (a : Std.I32) (b : Std.I32) (c : Std.I32) (conds : Slice Bool) :
@@ -758,13 +758,13 @@ def issue400_2
   let z1 ← z + 5#i32
   ok (back y1 z1)
 
-/- [loops::copy_carray::CARRAY]
+/-- [loops::copy_carray::CARRAY]
    Source: 'tests/src/loops.rs', lines 471:4-471:36 -/
 @[global_simps, irreducible]
 def copy_carray.CARRAY : Array Std.U32 2#usize :=
   Array.make 2#usize [ 0#u32, 1#u32 ]
 
-/- [loops::copy_carray]: loop 0:
+/-- [loops::copy_carray]: loop 0:
    Source: 'tests/src/loops.rs', lines 473:4-476:5 -/
 def copy_carray_loop
   (a : Array Std.U32 2#usize) (i : Std.Usize) :
@@ -779,14 +779,14 @@ def copy_carray_loop
   else ok a
 partial_fixpoint
 
-/- [loops::copy_carray]:
+/-- [loops::copy_carray]:
    Source: 'tests/src/loops.rs', lines 470:0-477:1 -/
 @[reducible]
 def copy_carray
   (a : Array Std.U32 2#usize) : Result (Array Std.U32 2#usize) := do
   copy_carray_loop a 0#usize
 
-/- [loops::iter_local_mut_borrow]: loop 0:
+/-- [loops::iter_local_mut_borrow]: loop 0:
    Source: 'tests/src/loops.rs', lines 483:4-490:5 -/
 def iter_local_mut_borrow_loop (p : Std.I32) : Result Unit := do
   let p1 ← p + 1#i32
@@ -795,13 +795,13 @@ def iter_local_mut_borrow_loop (p : Std.I32) : Result Unit := do
   else iter_local_mut_borrow_loop p1
 partial_fixpoint
 
-/- [loops::iter_local_mut_borrow]:
+/-- [loops::iter_local_mut_borrow]:
    Source: 'tests/src/loops.rs', lines 480:0-491:1 -/
 @[reducible]
 def iter_local_mut_borrow : Result Unit := do
   iter_local_mut_borrow_loop 0#i32
 
-/- [loops::iter_local_shared_borrow]: loop 0:
+/-- [loops::iter_local_shared_borrow]: loop 0:
    Source: 'tests/src/loops.rs', lines 497:4-503:5 -/
 def iter_local_shared_borrow_loop : Result Unit := do
   if 0#i32 = 0#i32
@@ -809,20 +809,20 @@ def iter_local_shared_borrow_loop : Result Unit := do
   else iter_local_shared_borrow_loop
 partial_fixpoint
 
-/- [loops::iter_local_shared_borrow]:
+/-- [loops::iter_local_shared_borrow]:
    Source: 'tests/src/loops.rs', lines 494:0-504:1 -/
 @[reducible]
 def iter_local_shared_borrow : Result Unit := do
   iter_local_shared_borrow_loop
 
-/- [loops::AList]
+/-- [loops::AList]
    Source: 'tests/src/loops.rs', lines 506:0-509:1 -/
 @[discriminant isize]
 inductive AList (T : Type) where
 | Cons : Std.Usize → T → AList T → AList T
 | Nil : AList T
 
-/- [loops::insert_in_list]: loop 0:
+/-- [loops::insert_in_list]: loop 0:
    Source: 'tests/src/loops.rs', lines 1:0-528:5 -/
 def insert_in_list_loop
   {T : Type} (key : Std.Usize) (value : T) (ls : AList T) :
@@ -839,7 +839,7 @@ def insert_in_list_loop
   | AList.Nil => ok (true, AList.Cons key value AList.Nil)
 partial_fixpoint
 
-/- [loops::insert_in_list]:
+/-- [loops::insert_in_list]:
    Source: 'tests/src/loops.rs', lines 512:0-529:1 -/
 @[reducible]
 def insert_in_list
@@ -848,12 +848,12 @@ def insert_in_list
   := do
   insert_in_list_loop key value ls
 
-/- [loops::reborrow_const::reborrow]:
+/-- [loops::reborrow_const::reborrow]:
    Source: 'tests/src/loops.rs', lines 534:4-538:5 -/
 def reborrow_const.reborrow (x : Std.U64) : Result Std.U64 := do
   ok x
 
-/- [loops::reborrow_const]: loop 0:
+/-- [loops::reborrow_const]: loop 0:
    Source: 'tests/src/loops.rs', lines 0:0-542:5 -/
 def reborrow_const_loop : Result Unit := do
   if 0#i32 < 5#i32
@@ -862,12 +862,12 @@ def reborrow_const_loop : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::reborrow_const]:
+/-- [loops::reborrow_const]:
    Source: 'tests/src/loops.rs', lines 533:0-543:1 -/
 @[reducible] def reborrow_const : Result Unit := do
                reborrow_const_loop
 
-/- [loops::decode]: loop 1:
+/-- [loops::decode]: loop 1:
    Source: 'tests/src/loops.rs', lines 552:8-552:32 -/
 def decode_loop0_loop0 (dst_coeff : Std.U8) : Result Unit := do
   if dst_coeff > 32#u8
@@ -875,7 +875,7 @@ def decode_loop0_loop0 (dst_coeff : Std.U8) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops::decode]: loop 0:
+/-- [loops::decode]: loop 0:
    Source: 'tests/src/loops.rs', lines 550:4-563:1 -/
 def decode_loop0
   (pe_dst : Slice Std.U8) (i : Std.Usize) :
@@ -894,13 +894,13 @@ def decode_loop0
   else ok (false, pe_dst)
 partial_fixpoint
 
-/- [loops::decode]:
+/-- [loops::decode]:
    Source: 'tests/src/loops.rs', lines 546:0-563:1 -/
 @[reducible]
 def decode (pe_dst : Slice Std.U8) : Result (Bool × (Slice Std.U8)) := do
   decode_loop0 pe_dst 0#usize
 
-/- [loops::as_radix_minimized]: loop 0:
+/-- [loops::as_radix_minimized]: loop 0:
    Source: 'tests/src/loops.rs', lines 569:4-576:5 -/
 def as_radix_minimized_loop
   (scalar : Array Std.U64 4#usize) (i : Std.Usize) : Result Unit := do
@@ -920,7 +920,7 @@ def as_radix_minimized_loop
   else ok ()
 partial_fixpoint
 
-/- [loops::as_radix_minimized]:
+/-- [loops::as_radix_minimized]:
    Source: 'tests/src/loops.rs', lines 566:0-577:1 -/
 def as_radix_minimized : Result Unit := do
   let scalar := Array.repeat 4#usize 0#u64

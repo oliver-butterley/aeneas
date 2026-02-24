@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace order
 
-/- [order::compare]:
+/-- [order::compare]:
    Source: 'tests/src/order.rs', lines 5:0-7:1 -/
 def compare
   {T : Type} (corecmpOrdInst : core.cmp.Ord T) (x : T) (y : T) :
@@ -16,7 +16,7 @@ def compare
   := do
   corecmpOrdInst.cmp x y
 
-/- [order::u32_compare]:
+/-- [order::u32_compare]:
    Source: 'tests/src/order.rs', lines 9:0-11:1 -/
 def u32_compare (x : Std.U32) (y : Std.U32) : Result Ordering := do
   ok (core.cmp.impls.OrdU32.cmp x y)

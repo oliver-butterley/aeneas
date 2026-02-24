@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace iterators_scalar
 
-/- [iterators_scalar::iter]: loop 0:
+/-- [iterators_scalar::iter]: loop 0:
    Source: 'tests/src/iterators-scalar.rs', lines 5:4-7:5 -/
 def iter_loop
   (x : Std.I32) (iter1 : core.ops.range.Range Std.Usize) : Result Unit := do
@@ -20,7 +20,7 @@ def iter_loop
               iter_loop x1 iter2
 partial_fixpoint
 
-/- [iterators_scalar::iter]:
+/-- [iterators_scalar::iter]:
    Source: 'tests/src/iterators-scalar.rs', lines 3:0-8:1 -/
 def iter (n : Std.Usize) : Result Unit := do
   let iter1 ←

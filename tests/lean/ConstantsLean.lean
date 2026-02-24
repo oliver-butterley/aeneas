@@ -8,13 +8,13 @@ set_option linter.unusedVariables false
 
 namespace constants_lean
 
-/- Trait declaration: [constants_lean::Params]
+/-- Trait declaration: [constants_lean::Params]
    Source: 'tests/src/constants-lean.rs', lines 3:0-6:1 -/
 structure Params (Self : Type) where
   N : Std.Usize
   M : Std.Usize
 
-/- [constants_lean::use_params]:
+/-- [constants_lean::use_params]:
    Source: 'tests/src/constants-lean.rs', lines 8:0-10:1 -/
 def use_params
   {P : Type} (ParamsInst : Params P) (n : Std.Usize) : Result Unit := do

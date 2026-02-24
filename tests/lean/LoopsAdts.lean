@@ -8,14 +8,14 @@ set_option linter.unusedVariables false
 
 namespace loops_adts
 
-/- [loops_adts::List]
+/-- [loops_adts::List]
    Source: 'tests/src/loops-adts.rs', lines 3:0-6:1 -/
 @[discriminant isize]
 inductive List (T : Type) where
 | Cons : T → List T → List T
 | Nil : List T
 
-/- [loops_adts::nth_shared]: loop 0:
+/-- [loops_adts::nth_shared]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 9:4-18:1 -/
 def nth_shared_loop
   {T : Type} (ls : List T) (i : Std.U32) : Result (Option T) := do
@@ -28,13 +28,13 @@ def nth_shared_loop
   | List.Nil => ok none
 partial_fixpoint
 
-/- [loops_adts::nth_shared]:
+/-- [loops_adts::nth_shared]:
    Source: 'tests/src/loops-adts.rs', lines 8:0-18:1 -/
 @[reducible]
 def nth_shared {T : Type} (ls : List T) (i : Std.U32) : Result (Option T) := do
   nth_shared_loop ls i
 
-/- [loops_adts::nth_mut]: loop 0:
+/-- [loops_adts::nth_mut]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 21:4-30:1 -/
 def nth_mut_loop
   {T : Type} (ls : List T) (i : Std.U32) :
@@ -58,7 +58,7 @@ def nth_mut_loop
   | List.Nil => ok (none, fun o => List.Nil)
 partial_fixpoint
 
-/- [loops_adts::nth_mut]:
+/-- [loops_adts::nth_mut]:
    Source: 'tests/src/loops-adts.rs', lines 20:0-30:1 -/
 @[reducible]
 def nth_mut
@@ -67,7 +67,7 @@ def nth_mut
   := do
   nth_mut_loop ls i
 
-/- [loops_adts::update_array_mut_borrow]:
+/-- [loops_adts::update_array_mut_borrow]:
    Source: 'tests/src/loops-adts.rs', lines 32:0-34:1 -/
 def update_array_mut_borrow
   (a : Array Std.U32 32#usize) :
@@ -76,7 +76,7 @@ def update_array_mut_borrow
   := do
   ok (a, fun a1 => a1)
 
-/- [loops_adts::array_mut_borrow_loop1]: loop 0:
+/-- [loops_adts::array_mut_borrow_loop1]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 37:4-39:5 -/
 def array_mut_borrow_loop1_loop
   (b : Bool) (a : Array Std.U32 32#usize) :
@@ -90,7 +90,7 @@ def array_mut_borrow_loop1_loop
   else ok a
 partial_fixpoint
 
-/- [loops_adts::array_mut_borrow_loop1]:
+/-- [loops_adts::array_mut_borrow_loop1]:
    Source: 'tests/src/loops-adts.rs', lines 36:0-40:1 -/
 @[reducible]
 def array_mut_borrow_loop1
@@ -99,7 +99,7 @@ def array_mut_borrow_loop1
   := do
   array_mut_borrow_loop1_loop b a
 
-/- [loops_adts::array_mut_borrow_loop2]: loop 0:
+/-- [loops_adts::array_mut_borrow_loop2]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 43:4-45:5 -/
 def array_mut_borrow_loop2_loop
   (b : Bool) (a : Array Std.U32 32#usize) :
@@ -116,7 +116,7 @@ def array_mut_borrow_loop2_loop
   else ok (a, fun a1 => a1)
 partial_fixpoint
 
-/- [loops_adts::array_mut_borrow_loop2]:
+/-- [loops_adts::array_mut_borrow_loop2]:
    Source: 'tests/src/loops-adts.rs', lines 42:0-47:1 -/
 @[reducible]
 def array_mut_borrow_loop2
@@ -126,13 +126,13 @@ def array_mut_borrow_loop2
   := do
   array_mut_borrow_loop2_loop b a
 
-/- [loops_adts::copy_shared_array]:
+/-- [loops_adts::copy_shared_array]:
    Source: 'tests/src/loops-adts.rs', lines 49:0-51:1 -/
 def copy_shared_array
   (a : Array Std.U32 32#usize) : Result (Array Std.U32 32#usize) := do
   ok a
 
-/- [loops_adts::array_shared_borrow_loop1]: loop 0:
+/-- [loops_adts::array_shared_borrow_loop1]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 54:4-56:5 -/
 def array_shared_borrow_loop1_loop
   (b : Bool) (a : Array Std.U32 32#usize) : Result Unit := do
@@ -142,14 +142,14 @@ def array_shared_borrow_loop1_loop
   else ok ()
 partial_fixpoint
 
-/- [loops_adts::array_shared_borrow_loop1]:
+/-- [loops_adts::array_shared_borrow_loop1]:
    Source: 'tests/src/loops-adts.rs', lines 53:0-57:1 -/
 @[reducible]
 def array_shared_borrow_loop1
   (b : Bool) (a : Array Std.U32 32#usize) : Result Unit := do
   array_shared_borrow_loop1_loop b a
 
-/- [loops_adts::array_shared_borrow_loop2]: loop 0:
+/-- [loops_adts::array_shared_borrow_loop2]: loop 0:
    Source: 'tests/src/loops-adts.rs', lines 60:4-62:5 -/
 def array_shared_borrow_loop2_loop
   (b : Bool) (a : Array Std.U32 32#usize) :
@@ -161,7 +161,7 @@ def array_shared_borrow_loop2_loop
   else ok a
 partial_fixpoint
 
-/- [loops_adts::array_shared_borrow_loop2]:
+/-- [loops_adts::array_shared_borrow_loop2]:
    Source: 'tests/src/loops-adts.rs', lines 59:0-64:1 -/
 @[reducible]
 def array_shared_borrow_loop2

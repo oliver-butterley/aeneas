@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace iterators
 
-/- [iterators::iter_range]: loop 0:
+/-- [iterators::iter_range]: loop 0:
    Source: 'tests/src/iterators.rs', lines 5:4-5:28 -/
 def iter_range_loop (iter : core.ops.range.Range Std.Usize) : Result Unit := do
   let (o, iter1) ←
@@ -18,7 +18,7 @@ def iter_range_loop (iter : core.ops.range.Range Std.Usize) : Result Unit := do
   | some _ => iter_range_loop iter1
 partial_fixpoint
 
-/- [iterators::iter_range]:
+/-- [iterators::iter_range]:
    Source: 'tests/src/iterators.rs', lines 4:0-6:1 -/
 def iter_range : Result Unit := do
   let iter ←
@@ -27,7 +27,7 @@ def iter_range : Result Unit := do
       { start := 0#usize, «end» := 32#usize }
   iter_range_loop iter
 
-/- [iterators::iter_range_step_by]: loop 0:
+/-- [iterators::iter_range_step_by]: loop 0:
    Source: 'tests/src/iterators.rs', lines 9:4-9:33 -/
 def iter_range_step_by_loop
   (iter : core.iter.adapters.step_by.StepBy (core.ops.range.Range Std.Usize)) :
@@ -41,7 +41,7 @@ def iter_range_step_by_loop
   | some _ => iter_range_step_by_loop iter1
 partial_fixpoint
 
-/- [iterators::iter_range_step_by]:
+/-- [iterators::iter_range_step_by]:
    Source: 'tests/src/iterators.rs', lines 8:0-10:1 -/
 def iter_range_step_by (n : Std.Usize) : Result Unit := do
   let sb ←
@@ -53,7 +53,7 @@ def iter_range_step_by (n : Std.Usize) : Result Unit := do
       (core.iter.traits.iterator.IteratorRange core.iter.range.StepUsize)) sb
   iter_range_step_by_loop iter
 
-/- [iterators::slice_iter_mut_while]: loop 1:
+/-- [iterators::slice_iter_mut_while]: loop 1:
    Source: 'tests/src/iterators.rs', lines 15:8-15:18 -/
 def slice_iter_mut_while_loop0_loop0 (b : Bool) : Result Unit := do
   if b
@@ -61,7 +61,7 @@ def slice_iter_mut_while_loop0_loop0 (b : Bool) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while]: loop 0:
+/-- [iterators::slice_iter_mut_while]: loop 0:
    Source: 'tests/src/iterators.rs', lines 14:4-16:5 -/
 def slice_iter_mut_while_loop0
   (b : Bool) (it : core.slice.iter.IterMut Std.U16) :
@@ -76,7 +76,7 @@ def slice_iter_mut_while_loop0
     ok (next_back back o)
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while]:
+/-- [iterators::slice_iter_mut_while]:
    Source: 'tests/src/iterators.rs', lines 12:0-17:1 -/
 def slice_iter_mut_while
   (b : Bool) (s : Slice Std.U16) : Result (Slice Std.U16) := do
@@ -84,7 +84,7 @@ def slice_iter_mut_while
   let back ← slice_iter_mut_while_loop0 b it
   ok (iter_mut_back back)
 
-/- [iterators::slice_iter_while]: loop 1:
+/-- [iterators::slice_iter_while]: loop 1:
    Source: 'tests/src/iterators.rs', lines 22:8-22:18 -/
 def slice_iter_while_loop0_loop0 (b : Bool) : Result Unit := do
   if b
@@ -92,7 +92,7 @@ def slice_iter_while_loop0_loop0 (b : Bool) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [iterators::slice_iter_while]: loop 0:
+/-- [iterators::slice_iter_while]: loop 0:
    Source: 'tests/src/iterators.rs', lines 21:4-23:5 -/
 def slice_iter_while_loop0
   (b : Bool) (it : core.slice.iter.Iter Std.U16) : Result Unit := do
@@ -103,13 +103,13 @@ def slice_iter_while_loop0
               slice_iter_while_loop0 false it1
 partial_fixpoint
 
-/- [iterators::slice_iter_while]:
+/-- [iterators::slice_iter_while]:
    Source: 'tests/src/iterators.rs', lines 19:0-24:1 -/
 def slice_iter_while (b : Bool) (s : Slice Std.U16) : Result Unit := do
   let it ← core.slice.Slice.iter s
   slice_iter_while_loop0 b it
 
-/- [iterators::slice_iter_mut_while_early_return]: loop 1:
+/-- [iterators::slice_iter_mut_while_early_return]: loop 1:
    Source: 'tests/src/iterators.rs', lines 29:8-29:18 -/
 def slice_iter_mut_while_early_return_loop0_loop0
   (b : Bool) : Result Unit := do
@@ -118,7 +118,7 @@ def slice_iter_mut_while_early_return_loop0_loop0
   else ok ()
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while_early_return]: loop 0:
+/-- [iterators::slice_iter_mut_while_early_return]: loop 0:
    Source: 'tests/src/iterators.rs', lines 28:4-35:1 -/
 def slice_iter_mut_while_early_return_loop0
   (b : Bool) (it : core.slice.iter.IterMut Std.U16) :
@@ -133,7 +133,7 @@ def slice_iter_mut_while_early_return_loop0
     ok (next_back back o)
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while_early_return]:
+/-- [iterators::slice_iter_mut_while_early_return]:
    Source: 'tests/src/iterators.rs', lines 26:0-35:1 -/
 def slice_iter_mut_while_early_return
   (s : Array Std.U16 256#usize) (b : Bool) :
@@ -147,7 +147,7 @@ def slice_iter_mut_while_early_return
   let s2 := iter_mut_back back
   ok (to_slice_mut_back s2)
 
-/- [iterators::slice_iter_mut_while_early_return_two_bools]: loop 1:
+/-- [iterators::slice_iter_mut_while_early_return_two_bools]: loop 1:
    Source: 'tests/src/iterators.rs', lines 40:8-40:19 -/
 def slice_iter_mut_while_early_return_two_bools_loop0_loop0
   (b0 : Bool) : Result Unit := do
@@ -156,7 +156,7 @@ def slice_iter_mut_while_early_return_two_bools_loop0_loop0
   else ok ()
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while_early_return_two_bools]: loop 0:
+/-- [iterators::slice_iter_mut_while_early_return_two_bools]: loop 0:
    Source: 'tests/src/iterators.rs', lines 39:4-46:1 -/
 def slice_iter_mut_while_early_return_two_bools_loop0
   (b0 : Bool) (b1 : Bool) (it : core.slice.iter.IterMut Std.U16) :
@@ -175,7 +175,7 @@ def slice_iter_mut_while_early_return_two_bools_loop0
       ok (next_back back o)
 partial_fixpoint
 
-/- [iterators::slice_iter_mut_while_early_return_two_bools]:
+/-- [iterators::slice_iter_mut_while_early_return_two_bools]:
    Source: 'tests/src/iterators.rs', lines 37:0-46:1 -/
 def slice_iter_mut_while_early_return_two_bools
   (s : Array Std.U16 256#usize) (b0 : Bool) (b1 : Bool) :
@@ -189,7 +189,7 @@ def slice_iter_mut_while_early_return_two_bools
   let s2 := iter_mut_back back
   ok (to_slice_mut_back s2)
 
-/- [iterators::slice_chunks_exact_iter]: loop 1:
+/-- [iterators::slice_chunks_exact_iter]: loop 1:
    Source: 'tests/src/iterators.rs', lines 50:8-50:30 -/
 def slice_chunks_exact_iter_loop0_loop0
   (iter : core.slice.iter.Iter Std.U128) : Result Unit := do
@@ -199,7 +199,7 @@ def slice_chunks_exact_iter_loop0_loop0
   | some _ => slice_chunks_exact_iter_loop0_loop0 iter1
 partial_fixpoint
 
-/- [iterators::slice_chunks_exact_iter]: loop 0:
+/-- [iterators::slice_chunks_exact_iter]: loop 0:
    Source: 'tests/src/iterators.rs', lines 49:4-51:5 -/
 def slice_chunks_exact_iter_loop0
   (key : Array Std.U128 128#usize) (iter : core.slice.iter.ChunksExact Std.U8)
@@ -219,7 +219,7 @@ def slice_chunks_exact_iter_loop0
     slice_chunks_exact_iter_loop0 key iter1
 partial_fixpoint
 
-/- [iterators::slice_chunks_exact_iter]:
+/-- [iterators::slice_chunks_exact_iter]:
    Source: 'tests/src/iterators.rs', lines 48:0-52:1 -/
 def slice_chunks_exact_iter
   (key : Array Std.U128 128#usize) (data : Slice Std.U8) : Result Unit := do
@@ -229,12 +229,12 @@ def slice_chunks_exact_iter
       (core.iter.traits.iterator.IteratorChunksExact Std.U8) ce
   slice_chunks_exact_iter_loop0 key iter
 
-/- [iterators::Key]
+/-- [iterators::Key]
    Source: 'tests/src/iterators.rs', lines 54:0-54:24 -/
 @[reducible]
 def Key := Array Std.U128 128#usize
 
-/- [iterators::key_iter_slice_iter]: loop 1:
+/-- [iterators::key_iter_slice_iter]: loop 1:
    Source: 'tests/src/iterators.rs', lines 58:8-58:32 -/
 def key_iter_slice_iter_loop0_loop0
   (iter : core.slice.iter.Iter Std.U128) : Result Unit := do
@@ -244,7 +244,7 @@ def key_iter_slice_iter_loop0_loop0
   | some _ => key_iter_slice_iter_loop0_loop0 iter1
 partial_fixpoint
 
-/- [iterators::key_iter_slice_iter]: loop 0:
+/-- [iterators::key_iter_slice_iter]: loop 0:
    Source: 'tests/src/iterators.rs', lines 57:4-59:5 -/
 def key_iter_slice_iter_loop0
   (key : Key) (iter : core.slice.iter.Iter Std.U8) : Result Unit := do
@@ -261,7 +261,7 @@ def key_iter_slice_iter_loop0
     key_iter_slice_iter_loop0 key iter1
 partial_fixpoint
 
-/- [iterators::key_iter_slice_iter]:
+/-- [iterators::key_iter_slice_iter]:
    Source: 'tests/src/iterators.rs', lines 56:0-60:1 -/
 def key_iter_slice_iter (key : Key) (data : Slice Std.U8) : Result Unit := do
   let i ← core.slice.Slice.iter data

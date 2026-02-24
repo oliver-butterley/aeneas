@@ -8,12 +8,12 @@ set_option linter.unusedVariables false
 
 namespace static
 
-/- Trait declaration: [static::WithSlice]
+/-- Trait declaration: [static::WithSlice]
    Source: 'tests/src/static.rs', lines 3:0-5:1 -/
 structure WithSlice (Self : Type) where
   SLICE : Slice Std.U16
 
-/- [static::read]:
+/-- [static::read]:
    Source: 'tests/src/static.rs', lines 27:0-29:1 -/
 def read
   {S : Type} (WithSliceInst : WithSlice S) (t : S) (i : Std.Usize) :
@@ -21,12 +21,12 @@ def read
   := do
   Slice.index_usize WithSliceInst.SLICE i
 
-/- [static::use_static::PREFIX]
+/-- [static::use_static::PREFIX]
    Source: 'tests/src/static.rs', lines 40:4-40:34 -/
 @[global_simps, irreducible]
 def use_static.PREFIX : Array Std.U8 1#usize := Array.make 1#usize [ 0#u8 ]
 
-/- [static::use_static]:
+/-- [static::use_static]:
    Source: 'tests/src/static.rs', lines 39:0-42:1 -/
 def use_static : Result Unit := do
   ok ()

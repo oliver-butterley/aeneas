@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace into
 
-/- [into::slice_to_array]:
+/-- [into::slice_to_array]:
    Source: 'tests/src/into.rs', lines 4:0-6:1 -/
 def slice_to_array (s : Slice Std.U8) : Result (Array Std.U8 32#usize) := do
   let r ←
@@ -16,7 +16,7 @@ def slice_to_array (s : Slice Std.U8) : Result (Array Std.U8 32#usize) := do
       (core.convert.TryFromSharedArraySliceTryFromSliceError Std.U8 32#usize) s
   core.result.Result.unwrap core.fmt.DebugTryFromSliceError r
 
-/- [into::slice_to_array1]:
+/-- [into::slice_to_array1]:
    Source: 'tests/src/into.rs', lines 8:0-10:1 -/
 def slice_to_array1 (s : Slice Std.U8) : Result (Array Std.U8 32#usize) := do
   let r ←

@@ -8,157 +8,157 @@ set_option linter.unusedVariables false
 
 namespace constants
 
-/- [constants::X0]
+/-- [constants::X0]
    Source: 'tests/src/constants.rs', lines 7:0-7:22 -/
 @[global_simps, irreducible] def X0 : Std.U32 := 0#u32
 
-/- [constants::X1]
+/-- [constants::X1]
    Source: 'tests/src/constants.rs', lines 9:0-9:29 -/
 @[global_simps, irreducible] def X1 : Std.U32 := core.num.U32.MAX
 
-/- [constants::X2]
+/-- [constants::X2]
    Source: 'tests/src/constants.rs', lines 12:0-15:2 -/
 @[global_simps, irreducible] def X2 : Std.U32 := 3#u32
 
-/- [constants::incr]:
+/-- [constants::incr]:
    Source: 'tests/src/constants.rs', lines 19:0-21:1 -/
 def incr (n : Std.U32) : Result Std.U32 := do
   n + 1#u32
 
-/- [constants::X3]
+/-- [constants::X3]
    Source: 'tests/src/constants.rs', lines 17:0-17:29 -/
 @[global_simps] def X3_body : Result Std.U32 := do incr 32#u32
 @[global_simps, irreducible] def X3 : Std.U32 := eval_global X3_body
 
-/- [constants::mk_pair0]:
+/-- [constants::mk_pair0]:
    Source: 'tests/src/constants.rs', lines 25:0-27:1 -/
 def mk_pair0 (x : Std.U32) (y : Std.U32) : Result (Std.U32 × Std.U32) := do
   ok (x, y)
 
-/- [constants::Pair]
+/-- [constants::Pair]
    Source: 'tests/src/constants.rs', lines 38:0-41:1 -/
 structure Pair (T1 : Type) (T2 : Type) where
   x : T1
   y : T2
 
-/- [constants::mk_pair1]:
+/-- [constants::mk_pair1]:
    Source: 'tests/src/constants.rs', lines 29:0-31:1 -/
 def mk_pair1 (x : Std.U32) (y : Std.U32) : Result (Pair Std.U32 Std.U32) := do
   ok { x, y }
 
-/- [constants::P0]
+/-- [constants::P0]
    Source: 'tests/src/constants.rs', lines 33:0-33:42 -/
 @[global_simps]
 def P0_body : Result (Std.U32 × Std.U32) := do mk_pair0 0#u32 1#u32
 @[global_simps, irreducible]
 def P0 : (Std.U32 × Std.U32) := eval_global P0_body
 
-/- [constants::P1]
+/-- [constants::P1]
    Source: 'tests/src/constants.rs', lines 34:0-34:46 -/
 @[global_simps]
 def P1_body : Result (Pair Std.U32 Std.U32) := do mk_pair1 0#u32 1#u32
 @[global_simps, irreducible]
 def P1 : Pair Std.U32 Std.U32 := eval_global P1_body
 
-/- [constants::P2]
+/-- [constants::P2]
    Source: 'tests/src/constants.rs', lines 35:0-35:34 -/
 @[global_simps, irreducible] def P2 : (Std.U32 × Std.U32) := (0#u32, 1#u32)
 
-/- [constants::P3]
+/-- [constants::P3]
    Source: 'tests/src/constants.rs', lines 36:0-36:51 -/
 @[global_simps, irreducible]
 def P3 : Pair Std.U32 Std.U32 := { x := 0#u32, y := 1#u32 }
 
-/- [constants::Wrap]
+/-- [constants::Wrap]
    Source: 'tests/src/constants.rs', lines 51:0-53:1 -/
 structure Wrap (T : Type) where
   value : T
 
-/- [constants::{constants::Wrap<T>}::new]:
+/-- [constants::{constants::Wrap<T>}::new]:
    Source: 'tests/src/constants.rs', lines 56:4-58:5 -/
 def Wrap.new {T : Type} (value : T) : Result (Wrap T) := do
   ok { value }
 
-/- [constants::Y]
+/-- [constants::Y]
    Source: 'tests/src/constants.rs', lines 43:0-43:38 -/
 @[global_simps] def Y_body : Result (Wrap Std.I32) := do Wrap.new 2#i32
 @[global_simps, irreducible] def Y : Wrap Std.I32 := eval_global Y_body
 
-/- [constants::unwrap_y]:
+/-- [constants::unwrap_y]:
    Source: 'tests/src/constants.rs', lines 45:0-47:1 -/
 def unwrap_y : Result Std.I32 := do
   ok Y.value
 
-/- [constants::YVAL]
+/-- [constants::YVAL]
    Source: 'tests/src/constants.rs', lines 49:0-49:33 -/
 @[global_simps] def YVAL_body : Result Std.I32 := do unwrap_y
 @[global_simps, irreducible] def YVAL : Std.I32 := eval_global YVAL_body
 
-/- [constants::get_z1::Z1]
+/-- [constants::get_z1::Z1]
    Source: 'tests/src/constants.rs', lines 64:4-64:22 -/
 @[global_simps, irreducible] def get_z1.Z1 : Std.I32 := 3#i32
 
-/- [constants::get_z1]:
+/-- [constants::get_z1]:
    Source: 'tests/src/constants.rs', lines 63:0-66:1 -/
 def get_z1 : Result Std.I32 := do
   ok get_z1.Z1
 
-/- [constants::add]:
+/-- [constants::add]:
    Source: 'tests/src/constants.rs', lines 68:0-70:1 -/
 def add (a : Std.I32) (b : Std.I32) : Result Std.I32 := do
   a + b
 
-/- [constants::Q1]
+/-- [constants::Q1]
    Source: 'tests/src/constants.rs', lines 76:0-76:22 -/
 @[global_simps, irreducible] def Q1 : Std.I32 := 5#i32
 
-/- [constants::Q2]
+/-- [constants::Q2]
    Source: 'tests/src/constants.rs', lines 77:0-77:23 -/
 @[global_simps, irreducible] def Q2 : Std.I32 := Q1
 
-/- [constants::Q3]
+/-- [constants::Q3]
    Source: 'tests/src/constants.rs', lines 78:0-78:31 -/
 @[global_simps] def Q3_body : Result Std.I32 := do add Q2 3#i32
 @[global_simps, irreducible] def Q3 : Std.I32 := eval_global Q3_body
 
-/- [constants::get_z2]:
+/-- [constants::get_z2]:
    Source: 'tests/src/constants.rs', lines 72:0-74:1 -/
 def get_z2 : Result Std.I32 := do
   let i ← get_z1
   let i1 ← add i Q3
   add Q1 i1
 
-/- [constants::S1]
+/-- [constants::S1]
    Source: 'tests/src/constants.rs', lines 82:0-82:23 -/
 @[global_simps, irreducible] def S1 : Std.U32 := 6#u32
 
-/- [constants::S2]
+/-- [constants::S2]
    Source: 'tests/src/constants.rs', lines 83:0-83:30 -/
 @[global_simps] def S2_body : Result Std.U32 := do incr S1
 @[global_simps, irreducible] def S2 : Std.U32 := eval_global S2_body
 
-/- [constants::S3]
+/-- [constants::S3]
    Source: 'tests/src/constants.rs', lines 84:0-84:35 -/
 @[global_simps, irreducible] def S3 : Pair Std.U32 Std.U32 := P3
 
-/- [constants::S4]
+/-- [constants::S4]
    Source: 'tests/src/constants.rs', lines 85:0-85:47 -/
 @[global_simps]
 def S4_body : Result (Pair Std.U32 Std.U32) := do mk_pair1 7#u32 8#u32
 @[global_simps, irreducible]
 def S4 : Pair Std.U32 Std.U32 := eval_global S4_body
 
-/- [constants::V]
+/-- [constants::V]
    Source: 'tests/src/constants.rs', lines 88:0-90:1 -/
 structure V (T : Type) (N : Std.Usize) where
   x : Array T N
 
-/- [constants::{constants::V<T, N>}::LEN]
+/-- [constants::{constants::V<T, N>}::LEN]
    Source: 'tests/src/constants.rs', lines 93:4-93:29 -/
 @[global_simps, irreducible]
 def V.LEN (T : Type) (N : Std.Usize) : Std.Usize := N
 
-/- [constants::use_v]:
+/-- [constants::use_v]:
    Source: 'tests/src/constants.rs', lines 96:0-98:1 -/
 def use_v (T : Type) (N : Std.Usize) : Result Std.Usize := do
   ok (V.LEN T N)

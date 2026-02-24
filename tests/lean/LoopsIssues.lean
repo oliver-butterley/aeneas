@@ -8,22 +8,22 @@ set_option linter.unusedVariables false
 
 namespace loops_issues
 
-/- [loops_issues::write]:
+/-- [loops_issues::write]:
    Source: 'tests/src/loops-issues.rs', lines 5:0-5:28 -/
 def write (a : Array Std.U8 4#usize) : Result (Array Std.U8 4#usize) := do
   ok a
 
-/- [loops_issues::read]:
+/-- [loops_issues::read]:
    Source: 'tests/src/loops-issues.rs', lines 8:0-8:23 -/
 def read (a : Array Std.U8 4#usize) : Result Unit := do
   ok ()
 
-/- [loops_issues::CARRAY]
+/-- [loops_issues::CARRAY]
    Source: 'tests/src/loops-issues.rs', lines 10:0-10:38 -/
 @[global_simps, irreducible]
 def CARRAY : Array Std.U16 4#usize := Array.repeat 4#usize 0#u16
 
-/- [loops_issues::loop_access_array]: loop 0:
+/-- [loops_issues::loop_access_array]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 15:4-18:5 -/
 def loop_access_array_loop
   (k : Std.Usize) (start : Std.Usize) : Result Unit := do
@@ -35,13 +35,13 @@ def loop_access_array_loop
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::loop_access_array]:
+/-- [loops_issues::loop_access_array]:
    Source: 'tests/src/loops-issues.rs', lines 13:0-19:1 -/
 @[reducible]
 def loop_access_array (k : Std.Usize) : Result Unit := do
   loop_access_array_loop k 0#usize
 
-/- [loops_issues::loop_array_len]: loop 0:
+/-- [loops_issues::loop_array_len]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 26:4-28:5 -/
 def loop_array_len_loop (b : Bool) : Result Unit := do
   if b
@@ -49,13 +49,13 @@ def loop_array_len_loop (b : Bool) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::loop_array_len]:
+/-- [loops_issues::loop_array_len]:
    Source: 'tests/src/loops-issues.rs', lines 22:0-29:1 -/
 @[reducible]
 def loop_array_len (b : Bool) : Result Unit := do
   loop_array_len_loop b
 
-/- [loops_issues::loop_array_len_write]: loop 0:
+/-- [loops_issues::loop_array_len_write]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 36:4-40:5 -/
 def loop_array_len_write_loop
   (b0 : Bool) (b1 : Bool) (buf : Array Std.U8 4#usize) : Result Unit := do
@@ -68,17 +68,17 @@ def loop_array_len_write_loop
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::loop_array_len_write]:
+/-- [loops_issues::loop_array_len_write]:
    Source: 'tests/src/loops-issues.rs', lines 32:0-41:1 -/
 def loop_array_len_write (b0 : Bool) (b1 : Bool) : Result Unit := do
   let buf := Array.repeat 4#usize 0#u8
   loop_array_len_write_loop b0 b1 buf
 
-/- [loops_issues::MAX_NROWS]
+/-- [loops_issues::MAX_NROWS]
    Source: 'tests/src/loops-issues.rs', lines 43:0-43:27 -/
 @[global_simps, irreducible] def MAX_NROWS : Std.Usize := 4#usize
 
-/- [loops_issues::read_global_loop]: loop 0:
+/-- [loops_issues::read_global_loop]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 48:4-48:14 -/
 def read_global_loop_loop (b : Bool) : Result Unit := do
   if b
@@ -86,13 +86,13 @@ def read_global_loop_loop (b : Bool) : Result Unit := do
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::read_global_loop]:
+/-- [loops_issues::read_global_loop]:
    Source: 'tests/src/loops-issues.rs', lines 46:0-49:1 -/
 def read_global_loop (b : Bool) (n_rows : Std.Usize) : Result Unit := do
   massert (n_rows <= MAX_NROWS)
   read_global_loop_loop b
 
-/- [loops_issues::mut_loop_len]: loop 0:
+/-- [loops_issues::mut_loop_len]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 55:10-55:11 -/
 def mut_loop_len_loop
   (b : Bool) (buf : Array Std.U8 4#usize) : Result Unit := do
@@ -106,14 +106,14 @@ def mut_loop_len_loop
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::mut_loop_len]:
+/-- [loops_issues::mut_loop_len]:
    Source: 'tests/src/loops-issues.rs', lines 52:0-58:1 -/
 def mut_loop_len (i : Std.U32) (b : Bool) : Result Std.U32 := do
   let buf := Array.repeat 4#usize 0#u8
   mut_loop_len_loop b buf
   ok i
 
-/- [loops_issues::test]: loop 0:
+/-- [loops_issues::test]: loop 0:
    Source: 'tests/src/loops-issues.rs', lines 65:4-71:5 -/
 def test_loop
   (b0 : Bool) (b1 : Bool) (buf : Array Std.U8 4#usize) : Result Unit := do
@@ -127,7 +127,7 @@ def test_loop
   else ok ()
 partial_fixpoint
 
-/- [loops_issues::test]:
+/-- [loops_issues::test]:
    Source: 'tests/src/loops-issues.rs', lines 61:0-72:1 -/
 def test (b0 : Bool) (b1 : Bool) : Result Unit := do
   let buf := Array.repeat 4#usize 0#u8

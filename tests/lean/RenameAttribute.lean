@@ -8,28 +8,28 @@ set_option linter.unusedVariables false
 
 namespace rename_attribute
 
-/- Trait declaration: [rename_attribute::BoolTrait]
+/-- Trait declaration: [rename_attribute::BoolTrait]
    Source: 'tests/src/rename_attribute.rs', lines 9:0-19:1 -/
 structure BoolTest (Self : Type) where
   getTest : Self → Result Bool
   retTest : Self → Result Bool
 
-/- [rename_attribute::BoolTrait::ret_true]:
+/-- [rename_attribute::BoolTrait::ret_true]:
    Source: 'tests/src/rename_attribute.rs', lines 16:4-18:5 -/
 def BoolTrait.retTest.default {Self : Type} (self : Self) : Result Bool := do
   ok true
 
-/- [rename_attribute::{rename_attribute::BoolTrait for bool}::get_bool]:
+/-- [rename_attribute::{rename_attribute::BoolTrait for bool}::get_bool]:
    Source: 'tests/src/rename_attribute.rs', lines 23:4-25:5 -/
 def BoolImpl.getTest (self : Bool) : Result Bool := do
   ok self
 
-/- [rename_attribute::{rename_attribute::BoolTrait for bool}::ret_true]:
+/-- [rename_attribute::{rename_attribute::BoolTrait for bool}::ret_true]:
    Source: 'tests/src/rename_attribute.rs', lines 22:0-26:1 -/
 def BoolImpl.retTest (self : Bool) : Result Bool := do
   ok true
 
-/- Trait implementation: [rename_attribute::{rename_attribute::BoolTrait for bool}]
+/-- Trait implementation: [rename_attribute::{rename_attribute::BoolTrait for bool}]
    Source: 'tests/src/rename_attribute.rs', lines 22:0-26:1 -/
 @[reducible]
 def BoolImpl : BoolTest Bool := {
@@ -37,7 +37,7 @@ def BoolImpl : BoolTest Bool := {
   retTest := BoolImpl.retTest
 }
 
-/- [rename_attribute::test_bool_trait]:
+/-- [rename_attribute::test_bool_trait]:
    Source: 'tests/src/rename_attribute.rs', lines 29:0-31:1 -/
 def BoolFn (T : Type) (x : Bool) : Result Bool := do
   let b ← BoolImpl.getTest x
@@ -45,7 +45,7 @@ def BoolFn (T : Type) (x : Bool) : Result Bool := do
   then BoolImpl.retTest x
   else ok false
 
-/- [rename_attribute::SimpleEnum]
+/-- [rename_attribute::SimpleEnum]
    Source: 'tests/src/rename_attribute.rs', lines 37:0-42:1 -/
 @[discriminant isize]
 inductive VariantsTest where
@@ -53,12 +53,12 @@ inductive VariantsTest where
 | SecondVariant : VariantsTest
 | ThirdVariant : VariantsTest
 
-/- [rename_attribute::Foo]
+/-- [rename_attribute::Foo]
    Source: 'tests/src/rename_attribute.rs', lines 45:0-48:1 -/
 structure StructTest where
   FieldTest : Std.U32
 
-/- [rename_attribute::C]
+/-- [rename_attribute::C]
    Source: 'tests/src/rename_attribute.rs', lines 51:0-51:28 -/
 @[global_simps]
 def Const_Test_body : Result Std.U32 := do let i ← 100#u32 + 10#u32
@@ -66,13 +66,13 @@ def Const_Test_body : Result Std.U32 := do let i ← 100#u32 + 10#u32
 @[global_simps, irreducible]
 def Const_Test : Std.U32 := eval_global Const_Test_body
 
-/- [rename_attribute::CA]
+/-- [rename_attribute::CA]
    Source: 'tests/src/rename_attribute.rs', lines 54:0-54:23 -/
 @[global_simps] def Const_Aeneas11_body : Result Std.U32 := do 10#u32 + 1#u32
 @[global_simps, irreducible]
 def Const_Aeneas11 : Std.U32 := eval_global Const_Aeneas11_body
 
-/- [rename_attribute::factorial]:
+/-- [rename_attribute::factorial]:
    Source: 'tests/src/rename_attribute.rs', lines 57:0-63:1 -/
 def Factfn (n : Std.U64) : Result Std.U64 := do
   if n <= 1#u64
@@ -82,7 +82,7 @@ def Factfn (n : Std.U64) : Result Std.U64 := do
        n * i1
 partial_fixpoint
 
-/- [rename_attribute::sum]: loop 0:
+/-- [rename_attribute::sum]: loop 0:
    Source: 'tests/src/rename_attribute.rs', lines 69:4-72:5 -/
 def No_borrows_sum_loop
   (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
@@ -93,7 +93,7 @@ def No_borrows_sum_loop
   else ok s
 partial_fixpoint
 
-/- [rename_attribute::sum]:
+/-- [rename_attribute::sum]:
    Source: 'tests/src/rename_attribute.rs', lines 66:0-76:1 -/
 def No_borrows_sum (max : Std.U32) : Result Std.U32 := do
   let s ← No_borrows_sum_loop max 0#u32 0#u32

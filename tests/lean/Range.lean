@@ -8,7 +8,7 @@ set_option linter.unusedVariables false
 
 namespace range
 
-/- [range::use_range]:
+/-- [range::use_range]:
    Source: 'tests/src/range.rs', lines 3:0-5:1 -/
 def use_range (s : Slice Bool) : Result Unit := do
   let _ ←
@@ -16,7 +16,7 @@ def use_range (s : Slice Bool) : Result Unit := do
       Bool) s { start := 0#usize, «end» := 1#usize }
   ok ()
 
-/- [range::use_range_to]:
+/-- [range::use_range_to]:
    Source: 'tests/src/range.rs', lines 7:0-9:1 -/
 def use_range_to (s : Slice Bool) : Result Unit := do
   let _ ←
