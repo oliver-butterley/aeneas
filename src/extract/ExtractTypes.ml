@@ -1188,7 +1188,7 @@ let extract_comment (fmt : F.formatter) (sl : string list) : unit =
   let ld, space, rd =
     match backend () with
     | Coq | FStar | HOL4 -> ("(** ", 4, " *)")
-    | Lean -> ("/- ", 3, " -/")
+    | Lean -> ("/-- ", 3, " -/")
   in
   F.pp_open_vbox fmt space;
   F.pp_print_string fmt ld;
