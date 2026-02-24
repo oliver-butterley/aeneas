@@ -4,6 +4,7 @@ import Aeneas.Std.Primitives
 import AeneasMeta.Extensions
 import Aeneas.Progress.Trace
 import Aeneas.Std.WP
+import AeneasMeta.OptionConfig
 
 namespace Aeneas
 
@@ -50,6 +51,55 @@ initialize progressPostSimprocExt : Simp.SimprocExtension ←
   Simp.registerSimprocAttr `progress_post_simps_proc "\
     The `progress_post_simps_proc` attribute registers simp procedures to be used by `progress`
     during its preprocessing phase." none
+
+/-!
+# Config
+-/
+
+structure Config where
+  /- **DO NOT** use this: this is experimental and triggers bugs. -/
+  async : Bool := false
+  /-- Attempt to discharge preconditions by matching them against local assumptions. -/
+  assumTac : Bool := true
+  /-- Attempt to infer the ghost variables (variables of progress theorems
+      that are not bound in the function call). This requires `assumTac` to
+      be `true`. -/
+  inferGhostVars : Bool := true
+  /-- Use `scalar_tac` to discharge preconditions -/
+  scalarTac : Bool := false
+  /- Use `simp [*]` to discharge preconditions -/
+  simpStar : Bool := false
+  /-- Use `grind` to discharge preconditions -/
+  grind : Bool := true
+  /-- Use the ground simp procedures when calling `grind` -/
+  withGroundSimprocs : Bool := true
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splits : Nat := 4
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  ematch : Nat := 5
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitMatch : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitIte : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  splitIndPred : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  funext : Bool := false
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  gen : Nat  := 2
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  instances : Nat  := 1000
+  /--`grind` parameter: see `Lean.Grind.Config` -/
+  canonHeartbeats : Nat := 1000
+deriving Repr
+
+def Config.toGrindConfig (cfg : Config) : Grind.Config :=
+  let { async := _, assumTac := _, inferGhostVars := _, scalarTac := _, simpStar := _,
+        grind := _, withGroundSimprocs := _,
+        splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats } := cfg
+  { splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats }
+
+declare_option_config_elab Config elabPartialConfig aeneas.progress
 
 /-! # Attribute: `progress` -/
 
