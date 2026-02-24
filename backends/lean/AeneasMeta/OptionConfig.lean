@@ -2,7 +2,7 @@ import Lean
 import Lean.Elab.Tactic.Config
 import Lean.Elab.Eval
 
-namespace Aeneas.Meta.PartialConfig
+namespace Aeneas.Meta.OptionConfig
 
 open Lean Elab Command Term Meta PrettyPrinter
 
@@ -104,12 +104,12 @@ private def collectFieldInfo (structName : Name) :
 
 /-- -/
 syntax (name := declarePartialConfigElab)
-  "declare_partial_config_elab" ident ident ident : command
+  "declare_option_config_elab" ident ident ident : command
 
 
 /-- -/
 elab_rules : command
-  | `(declare_partial_config_elab $structId $elabFnId $optPrefixId) => do
+  | `(declare_option_config_elab $structId $elabFnId $optPrefixId) => do
     let ns         ← getCurrNamespace
     let structName := ns ++ structId.getId
     let elabFnName := elabFnId.getId
@@ -227,16 +227,16 @@ structure Config where
   b    : Bool   := false
   name : String := "hello"
 
-declare_partial_config_elab Config elabConfig exampleOptionPrefix
+declare_option_config_elab Config elabConfig exampleOptionPrefix
 
 /--
-info: opaque Aeneas.Meta.PartialConfig.Example.elabConfig : TSyntax `Lean.Parser.Tactic.optConfig → TermElabM Config
+info: opaque Aeneas.Meta.OptionConfig.Example.elabConfig : TSyntax `Lean.Parser.Tactic.optConfig → TermElabM Config
 -/
 #guard_msgs in
 #print elabConfig
 
 /--
-info: unsafe private def Aeneas.Meta.PartialConfig.Example.elabConfig.impl : TSyntax `Lean.Parser.Tactic.optConfig →
+info: unsafe private def Aeneas.Meta.OptionConfig.Example.elabConfig.impl : TSyntax `Lean.Parser.Tactic.optConfig →
   TermElabM Config :=
 fun cfg =>
   let pairs := decomposeOptConfig cfg;
@@ -257,10 +257,10 @@ fun cfg =>
     match Array.find? (fun p => p.fst == `name) pairs with
     | some (fst, valStx) => { raw := valStx }
     | none => name_opt
-  let ty : Expr := Lean.mkConst `Aeneas.Meta.PartialConfig.Example.Config
+  let ty : Expr := Lean.mkConst `Aeneas.Meta.OptionConfig.Example.Config
   let expr ←
     elabTermEnsuringType
-        (Syntax.mkApp { raw := (mkIdent `Aeneas.Meta.PartialConfig.Example.Config.mk).raw }
+        (Syntax.mkApp { raw := (mkIdent `Aeneas.Meta.OptionConfig.Example.Config.mk).raw }
             { toList := [n, b, name] }).raw
         (some ty)
   synthesizeSyntheticMVarsNoPostponing
@@ -272,4 +272,4 @@ fun cfg =>
 
 end Example
 
-end Aeneas.Meta.PartialConfig
+end Aeneas.Meta.OptionConfig

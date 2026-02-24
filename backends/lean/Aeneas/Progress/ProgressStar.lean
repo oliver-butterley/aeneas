@@ -735,7 +735,7 @@ def parseArgs: TSyntax `Aeneas.ProgressStar.«progress*_args» → TermElabM (Co
       | none => throwUnsupportedSyntax
   let progressConfig ← Progress.elabPartialConfig config
   -- TODO: find a simpler way of checking whether the syntax is empty
-  let configSyntax := if (Aeneas.Meta.PartialConfig.decomposeOptConfig config).isEmpty then none else some config
+  let configSyntax := if (Aeneas.Meta.OptionConfig.decomposeOptConfig config).isEmpty then none else some config
   let preconditionTac ← do
     match preconditionTac with
     | none => pure { progressConfig, configSyntax, preconditionTac := none }

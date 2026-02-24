@@ -4,7 +4,7 @@ import Aeneas.Std.Primitives
 import AeneasMeta.Extensions
 import Aeneas.Progress.Trace
 import Aeneas.Std.WP
-import AeneasMeta.PartialConfig
+import AeneasMeta.OptionConfig
 
 namespace Aeneas
 
@@ -99,7 +99,7 @@ def Config.toGrindConfig (cfg : Config) : Grind.Config :=
         splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats } := cfg
   { splits, ematch, splitMatch, splitIte, splitIndPred, funext, gen, instances, canonHeartbeats }
 
-declare_partial_config_elab Config elabPartialConfig aeneas.progress
+declare_option_config_elab Config elabPartialConfig aeneas.progress
 
 /-! # Attribute: `progress` -/
 
