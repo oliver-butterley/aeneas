@@ -141,7 +141,11 @@ let is_empty_record_type_decl_group (dg : Pure.type_decl list) : bool =
 let start_fun_decl_group (ctx : extraction_ctx) (fmt : F.formatter)
     (is_rec : bool) (dg : Pure.fun_decl list) =
   match backend () with
-  | FStar | Coq | Lean -> ()
+  | FStar | Coq -> ()
+  | Lean ->
+      if is_rec && List.length dg > 1 then (
+        F.pp_print_space fmt ();
+        F.pp_print_string fmt "mutual")
   | HOL4 ->
       (* In HOL4, opaque functions have a special treatment *)
       if is_single_opaque_fun_decl_group dg then ()
@@ -1189,14 +1193,9 @@ let extract_type_decl_struct_body (ctx : extraction_ctx) (fmt : F.formatter)
   in
   ()
 
-(** Extract a nestable, muti-line comment *)
-let extract_comment (fmt : F.formatter) (sl : string list) : unit =
-  (* Delimiters, space after we break a line *)
-  let ld, space, rd =
-    match backend () with
-    | Coq | FStar | HOL4 -> ("(** ", 4, " *)")
-    | Lean -> ("/-- ", 3, " -/")
-  in
+(** Extract a nestable, multi-line comment with the given delimiters *)
+let extract_content (fmt : F.formatter) (ld, space, rd) (sl : string list) :
+    unit =
   F.pp_open_vbox fmt space;
   F.pp_print_string fmt ld;
   (match sl with
@@ -1210,6 +1209,24 @@ let extract_comment (fmt : F.formatter) (sl : string list) : unit =
         sl);
   F.pp_print_string fmt rd;
   F.pp_close_box fmt ()
+
+(** Extract a plain comment *)
+let extract_comment (fmt : F.formatter) (sl : string list) : unit =
+  let delimiters =
+    match backend () with
+    | Coq | FStar | HOL4 -> ("(** ", 4, " *)")
+    | Lean -> ("/- ", 3, " -/")
+  in
+  extract_content fmt delimiters sl
+
+(** Extract a doc-string comment (attaches to the following declaration) *)
+let extract_docstring (fmt : F.formatter) (sl : string list) : unit =
+  let delimiters =
+    match backend () with
+    | Coq | FStar | HOL4 -> ("(** ", 4, " *)")
+    | Lean -> ("/-- ", 3, " -/")
+  in
+  extract_content fmt delimiters sl
 
 let extract_comment_with_span (ctx : extraction_ctx) (fmt : F.formatter)
     (sl : string list) (name : Types.name option)
@@ -1233,7 +1250,7 @@ let extract_comment_with_span (ctx : extraction_ctx) (fmt : F.formatter)
         ]
   in
   let span = Errors.span_to_string span in
-  extract_comment fmt (sl @ [ span ] @ name)
+  extract_docstring fmt (sl @ [ span ] @ name)
 
 let extract_attributes (span : Meta.span) (ctx : extraction_ctx)
     (fmt : F.formatter) (name : Types.name)

@@ -76,7 +76,7 @@ def test2 : Result Unit := do
   let _ ← 23#u32 + 44#u32
   ok ()
 
-/-- Unit test for [no_nested_borrows::test2] -/
+/- Unit test for [no_nested_borrows::test2] -/
 #assert (test2 == ok ())
 
 /-- [no_nested_borrows::get_max]:
@@ -94,7 +94,7 @@ def test3 : Result Unit := do
   let z ← x + y
   massert (z = 15#u32)
 
-/-- Unit test for [no_nested_borrows::test3] -/
+/- Unit test for [no_nested_borrows::test3] -/
 #assert (test3 == ok ())
 
 /-- [no_nested_borrows::test_neg1]:
@@ -103,7 +103,7 @@ def test_neg1 : Result Unit := do
   let y ← -. 3#i32
   massert (y = (-3)#i32)
 
-/-- Unit test for [no_nested_borrows::test_neg1] -/
+/- Unit test for [no_nested_borrows::test_neg1] -/
 #assert (test_neg1 == ok ())
 
 /-- [no_nested_borrows::refs_test1]:
@@ -111,7 +111,7 @@ def test_neg1 : Result Unit := do
 def refs_test1 : Result Unit := do
   massert (1#i32 = 1#i32)
 
-/-- Unit test for [no_nested_borrows::refs_test1] -/
+/- Unit test for [no_nested_borrows::refs_test1] -/
 #assert (refs_test1 == ok ())
 
 /-- [no_nested_borrows::refs_test2]:
@@ -122,7 +122,7 @@ def refs_test2 : Result Unit := do
   massert (2#i32 = 2#i32)
   massert (2#i32 = 2#i32)
 
-/-- Unit test for [no_nested_borrows::refs_test2] -/
+/- Unit test for [no_nested_borrows::refs_test2] -/
 #assert (refs_test2 == ok ())
 
 /-- [no_nested_borrows::test_list1]:
@@ -130,7 +130,7 @@ def refs_test2 : Result Unit := do
 def test_list1 : Result Unit := do
   ok ()
 
-/-- Unit test for [no_nested_borrows::test_list1] -/
+/- Unit test for [no_nested_borrows::test_list1] -/
 #assert (test_list1 == ok ())
 
 /-- [no_nested_borrows::copy_int]:
@@ -159,7 +159,7 @@ def test_copy_int : Result Unit := do
   let y ← copy_int 0#i32
   massert (0#i32 = y)
 
-/-- Unit test for [no_nested_borrows::test_copy_int] -/
+/- Unit test for [no_nested_borrows::test_copy_int] -/
 #assert (test_copy_int == ok ())
 
 /-- [no_nested_borrows::is_cons]:
@@ -175,7 +175,7 @@ def test_is_cons : Result Unit := do
   let b ← is_cons (List.Cons 0#i32 List.Nil)
   massert b
 
-/-- Unit test for [no_nested_borrows::test_is_cons] -/
+/- Unit test for [no_nested_borrows::test_is_cons] -/
 #assert (test_is_cons == ok ())
 
 /-- [no_nested_borrows::split_list]:
@@ -191,7 +191,7 @@ def test_split_list : Result Unit := do
   let (hd, _) ← split_list (List.Cons 0#i32 List.Nil)
   massert (hd = 0#i32)
 
-/-- Unit test for [no_nested_borrows::test_split_list] -/
+/- Unit test for [no_nested_borrows::test_split_list] -/
 #assert (test_split_list == ok ())
 
 /-- [no_nested_borrows::choose]:
@@ -214,7 +214,7 @@ def choose_test : Result Unit := do
   massert (x = 1#i32)
   massert (y = 0#i32)
 
-/-- Unit test for [no_nested_borrows::choose_test] -/
+/- Unit test for [no_nested_borrows::choose_test] -/
 #assert (choose_test == ok ())
 
 /-- [no_nested_borrows::test_char]:
@@ -327,7 +327,7 @@ def test_list_functions : Result Unit := do
   let i6 ← list_nth_shared ls 2#u32
   massert (i6 = 2#i32)
 
-/-- Unit test for [no_nested_borrows::test_list_functions] -/
+/- Unit test for [no_nested_borrows::test_list_functions] -/
 #assert (test_list_functions == ok ())
 
 /-- [no_nested_borrows::id_mut_pair1]:
@@ -407,7 +407,7 @@ def test_constants : Result Unit := do
   let swp ← new_pair1
   massert (swp.p.x = 1#u32)
 
-/-- Unit test for [no_nested_borrows::test_constants] -/
+/- Unit test for [no_nested_borrows::test_constants] -/
 #assert (test_constants == ok ())
 
 /-- [no_nested_borrows::test_weird_borrows1]:
@@ -415,7 +415,7 @@ def test_constants : Result Unit := do
 def test_weird_borrows1 : Result Unit := do
   ok ()
 
-/-- Unit test for [no_nested_borrows::test_weird_borrows1] -/
+/- Unit test for [no_nested_borrows::test_weird_borrows1] -/
 #assert (test_weird_borrows1 == ok ())
 
 /-- [no_nested_borrows::test_mem_replace]:

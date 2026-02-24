@@ -22,7 +22,7 @@ def test_incr : Result Unit := do
   let x ← ref_incr 0#i32
   massert (x = 1#i32)
 
-/-- Unit test for [paper::test_incr] -/
+/- Unit test for [paper::test_incr] -/
 #assert (test_incr == ok ())
 
 /-- [paper::choose]:
@@ -45,7 +45,7 @@ def test_choose : Result Unit := do
   massert (x = 1#i32)
   massert (y = 0#i32)
 
-/-- Unit test for [paper::test_choose] -/
+/- Unit test for [paper::test_choose] -/
 #assert (test_choose == ok ())
 
 /-- [paper::List]
@@ -93,7 +93,7 @@ def test_nth : Result Unit := do
   let i ← sum l
   massert (i = 7#i32)
 
-/-- Unit test for [paper::test_nth] -/
+/- Unit test for [paper::test_nth] -/
 #assert (test_nth == ok ())
 
 /-- [paper::call_choose]:

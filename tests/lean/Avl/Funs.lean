@@ -109,9 +109,10 @@ def Node.rotate_right_left
       ok (Node.mk root1.value (some (Node.mk x.value x.left x.right 0#i8))
         (some (Node.mk z.value a z.right 1#i8)) 0#i8)
 
+mutual
 /-- [avl::{avl::Node<T>}::insert_in_left]:
    Source: 'src/avl.rs', lines 235:4-267:5 -/
-mutual def Node.insert_in_left
+def Node.insert_in_left
   {T : Type} (OrdInst : Ord T) (node : Node T) (value : T) :
   Result (Bool × (Node T))
   := do

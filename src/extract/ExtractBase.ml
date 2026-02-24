@@ -1466,7 +1466,7 @@ let fun_decl_kind_to_qualif (kind : decl_kind) : string option =
       match kind with
       | SingleNonRec -> Some "def"
       | SingleRec -> Some "def"
-      | MutRecFirst -> Some "mutual def"
+      | MutRecFirst -> Some "def"
       | MutRecInner -> Some "def"
       | MutRecLast -> Some "def"
       | Builtin -> Some "axiom"

@@ -111,9 +111,10 @@ def i32_id (i : Std.I32) : Result Std.I32 := do
        i2 + 1#i32
 partial_fixpoint
 
+mutual
 /-- [tutorial::even]:
    Source: 'src/lib.rs', lines 85:0-92:1 -/
-mutual def even (i : Std.U32) : Result Bool := do
+def even (i : Std.U32) : Result Bool := do
   if i = 0#u32
   then ok true
   else let i1 ← i - 1#u32
