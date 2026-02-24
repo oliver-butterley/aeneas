@@ -458,8 +458,8 @@ let extract_external_name_patterns = ref true
 (** *)
 let match_patterns_with_trait_decl_refs = true
 
-(** Decompose loops to recursive functions *)
-let loops_to_recursive_functions = ref true
+(** Always decompose loops to recursive functions *)
+let loops_to_recursive_functions = ref false
 
 (** Should we run the translation in parallel?
 
@@ -574,3 +574,10 @@ let method_names_in_impl_namespace = ref false
 
 (** *)
 let all_computable = ref false
+
+(** Do not attempt to extract loops to recursive functions *)
+let no_recursive_loops = ref false
+
+(** This is for Lean: the value we should initialize `maxHeartBeats` to at the
+    top of the generated files *)
+let max_heartbeats = ref 1000000
