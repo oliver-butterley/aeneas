@@ -231,33 +231,6 @@ let dest_arrow_ty (span : Meta.span) (ty : ty) : ty * ty =
   | Some (arg_ty, ret_ty) -> (arg_ty, ret_ty)
   | None -> [%craise] span "Not an arrow type"
 
-let compute_literal_type (cv : literal) : literal_type =
-  match cv with
-  | VScalar (SignedScalar (ty, _)) -> TInt ty
-  | VScalar (UnsignedScalar (ty, _)) -> TUInt ty
-  | VBool _ -> TBool
-  | VChar _ -> TChar
-  | VFloat _ | VStr _ | VByteStr _ ->
-      [%craise_opt_span] None
-        "Float, string and byte string literals are unsupported"
-
-let constant_expr_of_const_generic : const_generic -> Types.constant_expr_kind =
-  function
-  | CgGlobal id -> CGlobal { id; generics = TypesUtils.empty_generic_args }
-  | CgVar v -> CVar v
-  | CgValue l -> CLiteral l
-
-let fvar_get_id (v : fvar) : fvar_id = v.id
-
-let mk_tpat_from_literal (cv : literal) : tpat =
-  let ty = TLiteral (compute_literal_type cv) in
-  { pat = PConstant cv; ty }
-
-let mk_tag (msg : string) (next_e : texpr) : texpr =
-  let e = Meta (Tag msg, next_e) in
-  let ty = next_e.ty in
-  { e; ty }
-
 let empty_generic_params : generic_params =
   { types = []; const_generics = []; trait_clauses = [] }
 
@@ -266,6 +239,29 @@ let empty_generic_args : generic_args =
 
 let mk_generic_args_from_types (types : ty list) : generic_args =
   { types; const_generics = []; trait_refs = [] }
+
+let compute_literal_type (cv : literal) : ty =
+  match cv with
+  | VScalar (SignedScalar (ty, _)) -> TLiteral (TInt ty)
+  | VScalar (UnsignedScalar (ty, _)) -> TLiteral (TUInt ty)
+  | VBool _ -> TLiteral TBool
+  | VChar _ -> TLiteral TChar
+  | VFloat { float_ty; _ } -> TLiteral (TFloat float_ty)
+  | VStr _ -> TAdt (TBuiltin TStr, empty_generic_args)
+  | VPureNat _ -> TLiteral TPureNat
+  | VPureInt _ -> TLiteral TPureInt
+  | VByteStr _ -> [%craise_opt_span] None "Byte string literals are unsupported"
+
+let fvar_get_id (v : fvar) : fvar_id = v.id
+
+let mk_tpat_from_literal (cv : literal) : tpat =
+  let ty = compute_literal_type cv in
+  { pat = PConstant cv; ty }
+
+let mk_tag (msg : string) (next_e : texpr) : texpr =
+  let e = Meta (Tag msg, next_e) in
+  let ty = next_e.ty in
+  { e; ty }
 
 type subst = {
   ty_subst : TypeVarId.id -> ty;
@@ -944,10 +940,22 @@ let ty_as_integer (span : Meta.span) (t : ty) : T.integer_type =
   | TLiteral (TUInt int_ty) -> Unsigned int_ty
   | _ -> [%craise] span "Unreachable"
 
-let ty_as_literal (span : Meta.span) (t : ty) : T.literal_type =
+let ty_as_literal (span : Meta.span) (t : ty) : literal_type =
   match t with
   | TLiteral ty -> ty
   | _ -> [%craise] span "Unreachable"
+
+let literal_type_is_integer (t : literal_type) : bool =
+  match t with
+  | TInt _ -> true
+  | TUInt _ -> true
+  | _ -> false
+
+let literal_as_integer (literal : literal_type) : integer_type =
+  match literal with
+  | TInt ty -> Signed ty
+  | TUInt ty -> Unsigned ty
+  | _ -> raise (Failure "Unreachable")
 
 let mk_result_ty (ty : ty) : ty =
   TAdt (TBuiltin TResult, mk_generic_args_from_types [ ty ])
@@ -1750,6 +1758,12 @@ let mk_opened_lets (monadic : bool) (lets : (tpat * texpr) list)
     (fun (pat, value) (e : texpr) -> mk_opened_let monadic pat value e)
     lets next_e
 
+let mk_opened_heterogeneous_lets (lets : (bool * tpat * texpr) list)
+    (next_e : texpr) : texpr =
+  List.fold_right
+    (fun (monadic, pat, value) (e : texpr) -> mk_opened_let monadic pat value e)
+    lets next_e
+
 (** This helper does not close the binder *)
 let mk_opened_checked_let file line span (monadic : bool) (lv : tpat)
     (re : texpr) (next_e : texpr) : texpr =
@@ -2201,6 +2215,7 @@ let open_close_all_fun_body fresh_fvar_id (span : Meta.span)
     [%sanity_check] span (not (texpr_has_bvars fbody.body));
   let fbody = f fbody in
   if !Config.sanity_checks then
+    (* TODO: this one is maybe a bit too restrictive without being really useful *)
     [%sanity_check] span (not (texpr_has_bvars fbody.body));
   let fbody = close_all_fun_body span fbody in
   if !Config.sanity_checks then
@@ -2398,7 +2413,7 @@ type decomposed_loop_result = {
     The returned continuation allows reconstructing the decomposition, in case
     we introduced a let-binding. *)
 let opt_destruct_loop_result_decompose_outputs fresh_fvar_id span
-    ~(intro_let : bool) (e : texpr) :
+    ~(intro_let : bool) ~(opened_vars : bool) (e : texpr) :
     (decomposed_loop_result * (texpr -> texpr)) option =
   let f, args = destruct_apps e in
   match f.e with
@@ -2451,7 +2466,10 @@ let opt_destruct_loop_result_decompose_outputs fresh_fvar_id span
                   in
                   let fields = List.map mk_texpr_from_fvar fvars in
                   let tuple = mk_simpl_tuple_texpr span fields in
-                  let mk_bind e' = mk_closed_let span false pat e e' in
+                  let mk_bind e' =
+                    if opened_vars then mk_opened_let false pat e e'
+                    else mk_closed_let span false pat e e'
+                  in
                   (fields, tuple, mk_bind)
                 else
                   let fields =

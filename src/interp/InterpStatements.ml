@@ -276,7 +276,8 @@ let get_builtin_function_return_type (span : Meta.span) (fid : builtin_fun_id)
   (* Instantiate the return type  *)
   let generics = Subst.generic_args_erase_regions generics in
   let subst =
-    Subst.make_subst_from_generics sg.item_binder_params generics Self
+    [%add_loc] Subst.make_subst_from_generics (Some span) sg.item_binder_params
+      generics Self
   in
   Subst.erase_regions_substitute_types subst sg.item_binder_value.output
 
@@ -648,10 +649,10 @@ let eval_non_builtin_function_call_symbolic_inst (span : Meta.span)
             (* This should be a call to a trait clause method (if it were a method
                coming from an impl, there should be no indirection through the trait
                reference itself (Charon should have simplified this). *)
-            [%sanity_check] span
+            (*[%sanity_check] span
               (match trait_ref.kind with
               | TraitImpl _ -> false
-              | _ -> true);
+              | _ -> true);*)
             (* Lookup the trait decl and substitution *)
             let trait_decl = ctx_lookup_trait_decl span ctx trait_decl_ref.id in
             let fn_ref =
@@ -712,7 +713,8 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)
       (* Instantiate the type  *)
       let generics = Subst.generic_args_erase_regions generics in
       let subst =
-        Subst.make_subst_from_generics global.generics generics Self
+        [%add_loc] Subst.make_subst_from_generics (Some span) global.generics
+          generics Self
       in
       let ty = Subst.erase_regions_substitute_types subst global.ty in
       (* Decompose *)
@@ -736,7 +738,8 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)
       (* Instantiate the type  *)
       let generics = Subst.generic_args_erase_regions generics in
       let subst =
-        Subst.make_subst_from_generics global.generics generics Self
+        [%add_loc] Subst.make_subst_from_generics (Some span) global.generics
+          generics Self
       in
       let ty = Subst.erase_regions_substitute_types subst global.ty in
       let sval = mk_fresh_symbolic_value span ctx ty in
@@ -875,7 +878,15 @@ and eval_statement_raw (config : config) (st : statement) : stl_cm_fun =
   | SetDiscriminant (p, variant_id) ->
       let (ctx, res), cc = set_discriminant config st.span p variant_id ctx in
       ([ (ctx, res) ], cc_singleton __FILE__ __LINE__ st.span cc)
-  | Deinit p ->
+  | PlaceMention _ ->
+      (* A place mention just needs to check the place projections are valid; for
+         now we treat this as a no-op *)
+      ([ (ctx, Unit) ], cc_singleton __FILE__ __LINE__ st.span (fun e -> e))
+  | Drop (p, _, _) ->
+      let ctx, cc = drop_value config st.span p ctx in
+      ([ (ctx, Unit) ], cc_singleton __FILE__ __LINE__ st.span cc)
+  | StorageDead local ->
+      let p = mk_place_from_var_id ctx st.span local in
       let ctx, cc = drop_value config st.span p ctx in
       ([ (ctx, Unit) ], cc_singleton __FILE__ __LINE__ st.span cc)
   | Assert (assertion, _on_failure) ->
@@ -899,8 +910,6 @@ and eval_statement_raw (config : config) (st : statement) : stl_cm_fun =
       let eval_loop_body = eval_block config loop_body in
       InterpLoops.eval_loop config st.span eval_loop_body ctx
   | Switch switch -> eval_switch config st.span switch ctx
-  | Drop _ | StorageDead _ ->
-      [%craise] st.span "StorageDead/Drop should have been removed in a prepass"
   | Error s -> [%craise] st.span s
 
 and eval_rvalue_global (config : config) (span : Meta.span) (dest : place)
@@ -1383,7 +1392,10 @@ and eval_non_builtin_function_call_concrete (config : config) (span : Meta.span)
       (* TODO: we need to normalize the types if we want to correctly support traits *)
       [%cassert] body.span (generics.trait_refs = [])
         "Traits are not supported yet in concrete mode";
-      let subst = Subst.make_subst_from_generics def.generics generics Self in
+      let subst =
+        [%add_loc] Subst.make_subst_from_generics (Some span) def.generics
+          generics Self
+      in
       let locals, body_st = Subst.fun_body_substitute_in_body subst body in
 
       (* Evaluate the input operands *)

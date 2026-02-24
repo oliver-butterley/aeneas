@@ -543,6 +543,14 @@ let scalar_name (ty : literal_type) : string =
       match backend () with
       | FStar | Coq | HOL4 -> "char"
       | Lean -> "Char")
+  | TPureNat -> (
+      match backend () with
+      | FStar | Coq | HOL4 -> "nat"
+      | Lean -> "Nat")
+  | TPureInt -> (
+      match backend () with
+      | FStar | Coq | HOL4 -> "int"
+      | Lean -> "Int")
 
 (** Extraction context.
 
@@ -609,7 +617,7 @@ let name_to_string (ctx : extraction_ctx) =
 let ty_to_string (ctx : extraction_ctx) =
   PrintPure.ty_to_string (extraction_ctx_to_fmt_env ctx) false
 
-let type_param_to_string = Print.Types.type_param_to_string
+let type_param_to_string = PrintPure.type_param_to_string
 
 let trait_clause_to_string (ctx : extraction_ctx) =
   PrintPure.trait_clause_to_string (extraction_ctx_to_fmt_env ctx)
@@ -1139,6 +1147,7 @@ let builtin_adts () : (builtin_ty * string) list =
   | Lean ->
       [
         (TResult, "Result");
+        (TLoopResult, "ControlFlow");
         (TFuel, "Nat");
         (TArray, "Array");
         (TSlice, "Slice");
@@ -1149,6 +1158,7 @@ let builtin_adts () : (builtin_ty * string) list =
   | Coq | FStar | HOL4 ->
       [
         (TResult, "result");
+        (TLoopResult, "control_flow");
         (TFuel, if backend () = HOL4 then "num" else "nat");
         (TArray, "array");
         (TSlice, "slice");
@@ -1170,6 +1180,8 @@ let builtin_variants () : (builtin_ty * VariantId.id * string) list =
       [
         (TResult, result_ok_id, "Ok");
         (TResult, result_fail_id, "Fail");
+        (TLoopResult, loop_result_continue_id, "Cont");
+        (TLoopResult, loop_result_break_id, "Done");
         (TError, error_failure_id, "Failure");
         (TError, error_out_of_fuel_id, "OutOfFuel");
         (* No Fuel::Zero on purpose *)
@@ -1179,6 +1191,8 @@ let builtin_variants () : (builtin_ty * VariantId.id * string) list =
       [
         (TResult, result_ok_id, "Ok");
         (TResult, result_fail_id, "Fail_");
+        (TLoopResult, loop_result_continue_id, "Cont");
+        (TLoopResult, loop_result_break_id, "Done");
         (TError, error_failure_id, "Failure");
         (TError, error_out_of_fuel_id, "OutOfFuel");
         (TFuel, fuel_zero_id, "O");
@@ -1189,6 +1203,8 @@ let builtin_variants () : (builtin_ty * VariantId.id * string) list =
         (TResult, result_ok_id, "ok");
         (TResult, result_fail_id, "fail");
         (TError, error_failure_id, "panic");
+        (TLoopResult, loop_result_continue_id, "cont");
+        (TLoopResult, loop_result_break_id, "done");
         (* No Fuel::Zero on purpose *)
         (* No Fuel::Succ on purpose *)
       ]
@@ -1196,6 +1212,8 @@ let builtin_variants () : (builtin_ty * VariantId.id * string) list =
       [
         (TResult, result_ok_id, "Ok");
         (TResult, result_fail_id, "Fail");
+        (TLoopResult, loop_result_continue_id, "Cont");
+        (TLoopResult, loop_result_break_id, "Done");
         (TError, error_failure_id, "Failure");
         (* No Fuel::Zero on purpose *)
         (* No Fuel::Succ on purpose *)
@@ -1264,7 +1282,8 @@ let builtin_pure_functions () : (pure_builtin_fun_id * string) list =
         (Discriminant, "read_discriminant");
         (UpdateAtIndex Slice, "Slice.update");
         (UpdateAtIndex Array, "Array.update");
-        (ToResult, "↑");
+        (ToResult, "lift");
+        (ResultUnwrapMut, "core.result.Result.unwrap.mut");
       ]
   | HOL4 ->
       (* We don't provide [FuelDecrease] and [FuelEqZero] on purpose *)
@@ -2034,7 +2053,9 @@ let ctx_compute_var_basename (span : Meta.span) (ctx : extraction_ctx)
           | TBool -> "b"
           | TChar -> "c"
           | TInt _ | TUInt _ -> "i"
-          | TFloat _ -> "fl")
+          | TFloat _ -> "fl"
+          | TPureNat -> "n"
+          | TPureInt -> "i")
       | TArrow _ -> "f"
       | TTraitType (_, name) -> name_from_type_ident name
       | TNever | TError -> "x"
