@@ -581,3 +581,7 @@ let no_recursive_loops = ref false
 (** This is for Lean: the value we should initialize `maxHeartBeats` to at the
     top of the generated files *)
 let max_heartbeats = ref 1000000
+
+(** If [false], evaluate [drop(p)] as [p := bottom]. Otherwise, evaluate it as a
+    no-op (which means that we do not borrow-check the drops). *)
+let drop_as_no_op = ref true

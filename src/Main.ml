@@ -218,6 +218,10 @@ let () =
             max_heartbeats := x),
         "For Lean: set the value of the `set_option maxHeartBeats ...` command \
          at the top of the generated files" );
+      ( "-eval-drops",
+        Arg.Clear drop_as_no_op,
+        "Evaluate the drops. By default we do not borrow-check them by \
+         treating them as no-ops." );
     ]
   in
 
