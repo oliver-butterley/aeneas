@@ -2044,7 +2044,8 @@ let extract_fun_comment (ctx : extraction_ctx) (fmt : F.formatter)
       Some def.item_meta.name
     else None
   in
-  extract_comment_with_span ctx fmt comment name def.item_meta.span
+  extract_comment_with_span ctx fmt comment name
+    ~public:def.item_meta.attr_info.public def.item_meta.span
 
 (** Extract a function declaration.
 
@@ -2601,7 +2602,7 @@ let extract_global_decl_aux (ctx : extraction_ctx) (fmt : F.formatter)
   in
   extract_comment_with_span ctx fmt
     [ "[" ^ name_to_string ctx global.item_meta.name ^ "]" ]
-    name global.span;
+    name ~public:global.item_meta.attr_info.public global.span;
   F.pp_print_space fmt ();
 
   let decl_name = ctx_get_global span global.def_id ctx in
@@ -3177,7 +3178,7 @@ let extract_trait_decl (ctx : extraction_ctx) (fmt : F.formatter)
    in
    extract_comment_with_span ctx fmt
      [ "Trait declaration: [" ^ name_to_string ctx decl.item_meta.name ^ "]" ]
-     name decl.item_meta.span);
+     name ~public:decl.item_meta.attr_info.public decl.item_meta.span);
   F.pp_print_break fmt 0 0;
   (* Extract the attributes *)
   ((* We need to list the extract options *)

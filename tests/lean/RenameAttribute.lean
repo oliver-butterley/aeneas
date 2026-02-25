@@ -12,23 +12,27 @@ set_option maxHeartbeats 1000000
 namespace rename_attribute
 
 /-- Trait declaration: [rename_attribute::BoolTrait]
-   Source: 'tests/src/rename_attribute.rs', lines 10:0-20:1 -/
+   Source: 'tests/src/rename_attribute.rs', lines 10:0-20:1
+   Visibility: public -/
 structure BoolTest (Self : Type) where
   getTest : Self → Result Bool
   retTest : Self → Result Bool
 
 /-- [rename_attribute::BoolTrait::ret_true]:
-   Source: 'tests/src/rename_attribute.rs', lines 17:4-19:5 -/
+   Source: 'tests/src/rename_attribute.rs', lines 17:4-19:5
+   Visibility: public -/
 def BoolTrait.retTest.default {Self : Type} (self : Self) : Result Bool := do
   ok true
 
 /-- [rename_attribute::{rename_attribute::BoolTrait for bool}::get_bool]:
-   Source: 'tests/src/rename_attribute.rs', lines 24:4-26:5 -/
+   Source: 'tests/src/rename_attribute.rs', lines 24:4-26:5
+   Visibility: public -/
 def BoolImpl.getTest (self : Bool) : Result Bool := do
   ok self
 
 /-- [rename_attribute::{rename_attribute::BoolTrait for bool}::ret_true]:
-   Source: 'tests/src/rename_attribute.rs', lines 23:0-27:1 -/
+   Source: 'tests/src/rename_attribute.rs', lines 23:0-27:1
+   Visibility: public -/
 def BoolImpl.retTest (self : Bool) : Result Bool := do
   ok true
 
@@ -41,7 +45,8 @@ def BoolImpl : BoolTest Bool := {
 }
 
 /-- [rename_attribute::test_bool_trait]:
-   Source: 'tests/src/rename_attribute.rs', lines 30:0-32:1 -/
+   Source: 'tests/src/rename_attribute.rs', lines 30:0-32:1
+   Visibility: public -/
 def BoolFn (T : Type) (x : Bool) : Result Bool := do
   let b ← BoolImpl.getTest x
   if b
@@ -86,7 +91,8 @@ def Factfn (n : Std.U64) : Result Std.U64 := do
 partial_fixpoint
 
 /-- [rename_attribute::sum]: loop 0:
-   Source: 'tests/src/rename_attribute.rs', lines 70:4-73:5 -/
+   Source: 'tests/src/rename_attribute.rs', lines 70:4-73:5
+   Visibility: public -/
 def No_borrows_sum_loop
   (max : Std.U32) (i : Std.U32) (s : Std.U32) : Result Std.U32 := do
   loop
@@ -100,7 +106,8 @@ def No_borrows_sum_loop
     (i, s)
 
 /-- [rename_attribute::sum]:
-   Source: 'tests/src/rename_attribute.rs', lines 67:0-77:1 -/
+   Source: 'tests/src/rename_attribute.rs', lines 67:0-77:1
+   Visibility: public -/
 def No_borrows_sum (max : Std.U32) : Result Std.U32 := do
   let s ← No_borrows_sum_loop max 0#u32 0#u32
   s * 2#u32

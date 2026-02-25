@@ -16,6 +16,7 @@ namespace loops_issues
 
 /-- [core::iter::range::{core::iter::range::Step for i32}::backward_checked]:
    Source: '/rustc/library/core/src/iter/range.rs', lines 333:16-333:74
+   Visibility: public
    Name pattern: [core::iter::range::{core::iter::range::Step<i32>}::backward_checked] -/
 @[rust_fun
   "core::iter::range::{core::iter::range::Step<i32>}::backward_checked"]
@@ -24,6 +25,7 @@ axiom I32.Insts.CoreIterRangeStep.backward_checked
 
 /-- [core::iter::range::{core::iter::range::Step for i32}::forward_checked]:
    Source: '/rustc/library/core/src/iter/range.rs', lines 312:16-312:73
+   Visibility: public
    Name pattern: [core::iter::range::{core::iter::range::Step<i32>}::forward_checked] -/
 @[rust_fun
   "core::iter::range::{core::iter::range::Step<i32>}::forward_checked"]
@@ -32,6 +34,7 @@ axiom I32.Insts.CoreIterRangeStep.forward_checked
 
 /-- [core::iter::range::{core::iter::range::Step for i32}::steps_between]:
    Source: '/rustc/library/core/src/iter/range.rs', lines 297:16-297:84
+   Visibility: public
    Name pattern: [core::iter::range::{core::iter::range::Step<i32>}::steps_between] -/
 @[rust_fun "core::iter::range::{core::iter::range::Step<i32>}::steps_between"]
 axiom I32.Insts.CoreIterRangeStep.steps_between
