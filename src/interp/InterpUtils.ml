@@ -882,7 +882,9 @@ let instantiate_fun_sig (span : Meta.span option) (ctx : eval_ctx)
       in
       let fresh_regions = fresh_regions in
       let fresh_region_vars : region_param list =
-        List.map (fun index -> { Types.index; name = None }) fresh_regions
+        List.map
+          (fun index -> { Types.index; name = None; mutability = LtUnknown })
+          fresh_regions
       in
       let open Substitute in
       let trait_clauses =
