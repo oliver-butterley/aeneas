@@ -11,7 +11,7 @@ set_option maxHeartbeats 1000000
 
 namespace drop
 
-/- [drop::fill]: loop 0:
+/-- [drop::fill]: loop 0:
    Source: 'tests/src/drop.rs', lines 7:4-9:5 -/
 def fill_loop
   {T : Type} (corecloneCloneInst : core.clone.Clone T) (s : Slice T)
@@ -33,7 +33,7 @@ def fill_loop
         ok (cont (s3, iter2)))
     (s, iter)
 
-/- [drop::fill]:
+/-- [drop::fill]:
    Source: 'tests/src/drop.rs', lines 3:0-10:1 -/
 def fill
   {T : Type} (corecloneCloneInst : core.clone.Clone T) (s : Slice T)
