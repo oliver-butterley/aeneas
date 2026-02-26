@@ -18,6 +18,7 @@ package «tests» {}
 @[default_target] lean_lib Builtin
 @[default_target] lean_lib Closures
 @[default_target] lean_lib Constants
+@[default_target] lean_lib Curve25519
 @[default_target] lean_lib ConstantsLean
 @[default_target] lean_lib Default
 @[default_target] lean_lib DefaultedMethod
@@ -25,6 +26,7 @@ package «tests» {}
 @[default_target] lean_lib Demo
 @[default_target] lean_lib Deref
 @[default_target] lean_lib Discriminant
+@[default_target] lean_lib Drop
 @[default_target] lean_lib Dyn
 @[default_target] lean_lib DynamicSize
 @[default_target] lean_lib FromTo

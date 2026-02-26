@@ -1296,7 +1296,13 @@ let replace_static (crate : crate) : crate =
         d.generics with
         regions =
           d.generics.regions
-          @ [ { index = RegionId.of_int 1; name = Some "'b" } ];
+          @ [
+              {
+                index = RegionId.of_int 1;
+                name = Some "'b";
+                mutability = LtUnknown;
+              };
+            ];
       }
     in
     let signature =
