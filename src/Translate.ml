@@ -1753,8 +1753,16 @@ let extract_translated_crate (filename : string) (dest_dir : string)
         in
         let full_dest_dir =
           match subdir with
-          | None -> dest_dir
           | Some subdir -> Filename.concat dest_dir subdir
+          | None ->
+              (* When generating a library entry point for a split Lean crate,
+                 automatically place the split modules in a sub-folder named
+                 after the crate. *)
+              if
+                !Config.generate_lib_entry_point && !Config.split_files
+                && Config.backend () = Lean
+              then Filename.concat dest_dir crate_name
+              else dest_dir
         in
         (*
            If the backend is Lean the module names depends on the path,
