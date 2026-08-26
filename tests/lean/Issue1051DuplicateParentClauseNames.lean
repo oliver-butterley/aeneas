@@ -60,11 +60,11 @@ def core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy : core.marker.Copy
     Name pattern: [core::num::nonzero::ZeroablePrimitive]
     Visibility: public -/
 @[rust_trait "core::num::nonzero::ZeroablePrimitive"
-  (parentClauses := ["markerCopyInst", "markerCopySelfNonZeroInnerInst"])]
+  (parentClauses := ["markerCopyInst", "markerCopyInst1"])]
 structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
   Type) where
   markerCopyInst : core.marker.Copy Self
-  markerCopySelfNonZeroInnerInst : core.marker.Copy Self_NonZeroInner
+  markerCopyInst1 : core.marker.Copy Self_NonZeroInner
 
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU8Inner> for u8}]
     Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56
@@ -75,8 +75,7 @@ def U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner :
   core.num.nonzero.ZeroablePrimitive Std.U8 core.num.niche_types.NonZeroU8Inner
   := {
   markerCopyInst := core.marker.CopyU8
-  markerCopySelfNonZeroInnerInst :=
-    core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy
+  markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy
 }
 
 /-- [core::num::nonzero::NonZero]
@@ -106,8 +105,8 @@ structure TraitA (Self : Type) where
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 10:0-13:1
     Visibility: public -/
 structure TraitB (Self : Type) (Self_X : Type) (Self_Y : Type) where
-  TraitASelfXInst : TraitA Self_X
-  TraitASelfYInst : TraitA Self_Y
+  TraitAInst : TraitA Self_X
+  TraitAInst1 : TraitA Self_Y
 
 /-- Trait declaration: [issue_1051_duplicate_parent_clause_names::TraitC]
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 17:0-17:19
@@ -189,8 +188,8 @@ structure Parent (Self : Type) (T : Type) (U : Type) where
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 55:0-55:66
     Visibility: public -/
 structure Combined (Self : Type) where
-  ParentFooSideBarInst : Parent Self Foo SideBar
-  ParentFooSideBarInst1 : Parent Self FooSide Bar
+  ParentSelfFooSideBarInst : Parent Self Foo SideBar
+  ParentSelfFooSideBarInst1 : Parent Self FooSide Bar
 
 /-- Trait declaration: [issue_1051_duplicate_parent_clause_names::WithProvided]
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 58:0-63:1
@@ -229,8 +228,8 @@ structure Producer (Self : Type) (Self_Item : Type) where
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 74:0-77:1
     Visibility: public -/
 structure Pair (Self : Type) (Self_Left : Type) (Self_Right : Type) where
-  coremarkerCopySelfLeftInst : core.marker.Copy Self_Left
-  coremarkerCopySelfRightInst : core.marker.Copy Self_Right
+  coremarkerCopyInst : core.marker.Copy Self_Left
+  coremarkerCopyInst1 : core.marker.Copy Self_Right
 
 /-- [issue_1051_duplicate_parent_clause_names::PairImpl]
     Source: 'tests/src/issue-1051-duplicate-parent-clause-names.rs', lines 79:0-79:20
@@ -243,8 +242,8 @@ def PairImpl := Unit
 @[reducible]
 def PairImpl.Insts.Issue_1051_duplicate_parent_clause_namesPairBoolU8 : Pair
   PairImpl Bool Std.U8 := {
-  coremarkerCopySelfLeftInst := core.core.marker.CopyBool
-  coremarkerCopySelfRightInst := core.marker.CopyU8
+  coremarkerCopyInst := core.core.marker.CopyBool
+  coremarkerCopyInst1 := core.marker.CopyU8
 }
 
 end issue_1051_duplicate_parent_clause_names
