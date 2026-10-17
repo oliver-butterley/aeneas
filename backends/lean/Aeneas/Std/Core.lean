@@ -1,5 +1,6 @@
 module
 public import Aeneas.Std.Core.Atomic
+public import Aeneas.Std.Core.Borrow
 public import Aeneas.Std.Core.Cmp
 public import Aeneas.Std.Core.Convert
 public import Aeneas.Std.Core.Core

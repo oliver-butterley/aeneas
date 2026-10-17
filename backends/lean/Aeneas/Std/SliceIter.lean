@@ -2,6 +2,7 @@
 module
 public import Aeneas.Std.Slice
 public import Aeneas.Std.Array.Array
+public import Aeneas.Std.Array.ArraySlice
 public import Aeneas.Std.Core.Iter
 public meta import Aeneas.Std.Core.Iter
 meta import Aeneas.Std.Slice
@@ -107,6 +108,27 @@ def SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter
   iteratorInst := core.iter.traits.iterator.IteratorSliceIter T
   into_iter := SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter
 }
+
+-- ============================================================================
+-- IntoIterator for mutable array references: &mut [T; N] → IterMut<T>
+-- ============================================================================
+
+/-- Model for `IntoIterator::into_iter` for `&mut [T; N]`
+(<https://doc.rust-lang.org/std/primitive.array.html#impl-IntoIterator-for-%26mut+%5BT;+N%5D>).
+Mirrors Rust (`library/core/src/array/mod.rs`: `self.iter_mut()`): returns an `IterMut<T>` over
+the array viewed as a slice, starting at index 0, together with the back function which writes
+the (possibly updated) slice held by the iterator back into the array.
+
+There is no matching `rust_trait_impl` record: `IterMut::next` returns a back function, so
+`IterMut` has no `Iterator` instance and the `IntoIterator` structure (whose `iteratorInst` field
+requires one) can't be filled. Code which calls `into_iter` directly (e.g. `for` loops) only needs
+this function. -/
+@[rust_fun
+  "core::array::{core::iter::traits::collect::IntoIterator<&'a mut [@T; @N], &'a mut @T, core::slice::iter::IterMut<'a, @T>>}::into_iter"]
+def MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter
+    {T : Type _} {N : Usize} (a : Array T N) :
+    Result ((core.slice.iter.IterMut T) × (core.slice.iter.IterMut T → Array T N)) :=
+  ok ({ slice := Array.to_slice a }, fun it => Array.from_slice a it.slice)
 
 -- ============================================================================
 -- IntoIterator for shared slice references: &[T] → Iter<T>
@@ -352,4 +374,11 @@ theorem SharedSlice.into_iter.spec {T : Type _} (s : Slice T) :
     ⦃ (iter : core.slice.iter.Iter T) =>
       iter.slice = s ∧ iter.i = 0 ⦄ := by
   simp [SharedSlice.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter, WP.spec_ok]
+
+@[step]
+theorem MutAArray.into_iter.spec {T : Type _} {N : Usize} (a : Array T N) :
+    MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter a
+    ⦃ (iter : core.slice.iter.IterMut T) (back : core.slice.iter.IterMut T → Array T N) =>
+      iter.slice.val = a.val ∧ iter.i = 0 ∧ back = fun it => Array.from_slice a it.slice ⦄ := by
+  simp [MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter, WP.spec_ok]
 end Aeneas.Std
