@@ -1,4 +1,5 @@
 module
+public import Aeneas.Std.Core.Alloc
 public import Aeneas.Std.Core.Atomic
 public import Aeneas.Std.Core.Borrow
 public import Aeneas.Std.Core.Cmp
