@@ -12,6 +12,7 @@ example (a : Array U32 4#usize) :
     MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter a
       ⦃ it back => it.slice.val = a.val ∧ (back it) = a ⦄ := by
   step*
-  simp_all [Array.from_slice]
+  refine ⟨it_post, Aeneas.Std.Array.ext _ _ ?_⟩
+  rw [it_post2 it (by simp [it_post]), it_post]
 
 end iter_mut

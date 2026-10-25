@@ -92,9 +92,9 @@ theorem UScalar.div_ceil.spec {ty : UScalarTy} (x y : UScalar ty) (hy : y.val �
   simp only [UScalar.div_ceil, hy, ↓reduceDIte, WP.spec_ok, UScalar.ofNatCore_val_eq, true_and]
   exact UScalar.div_ceil_is_ceil (by omega)
 
+uscalar
 /-- **Spec theorem for `core::num::{u8,…,usize}::div_ceil`**: the ceiling of `x / y`, for `y ≠ 0`
     (Rust panics when `y = 0`). -/
-uscalar
 @[step]
 theorem core.num.«%S».div_ceil.spec (x y : «%S») (hy : y.val ≠ 0) :
     core.num.«%S».div_ceil x y ⦃ (z : «%S») =>

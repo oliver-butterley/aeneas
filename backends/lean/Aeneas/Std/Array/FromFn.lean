@@ -37,7 +37,7 @@ def core.array.from_fn {T F : Type u} (N : Usize) (inst : core.ops.function.FnMu
 theorem core.array.from_fn.ofFnM_spec {T F : Type u} {n : Nat} (fm : Fin n → StateT F Result T)
     {post : Nat → T → Prop} (inv : Nat → F → Prop)
     (h : ∀ (i : Fin n) g, inv i.val g →
-      (fm i).run g ⦃ (v, g') => post i.val v ∧ inv (i.val + 1) g' ⦄)
+      (fm i).run g ⦃ (v : T) (g' : F) => post i.val v ∧ inv (i.val + 1) g' ⦄)
     (g : F) (hinv : inv 0 g) :
     (Vector.ofFnM fm).run g ⦃ (vs, g') => (∀ j (hj : j < n), post j vs[j]) ∧ inv n g' ⦄ := by
   induction n generalizing g with
