@@ -82,19 +82,22 @@ theorem UScalar.div_ceil_is_ceil {x y : Nat} (hy : 0 < y) :
   rw [Nat.mul_comm] at hdiv
   constructor <;> omega
 
-/-- Spec of `div_ceil`: the result is `(x + y - 1) / y`, which is the ceiling of `x / y` (the
-    unique `z` with `x ≤ z * y < x + y`, see `div_ceil_is_ceil`). -/
+/-- **Spec theorem for `div_ceil`**, for every unsigned width: the result is `(x + y - 1) / y`,
+    which is the ceiling of `x / y` (the unique `z` with `x ≤ z * y < x + y`, see
+    `div_ceil_is_ceil`). -/
 theorem UScalar.div_ceil.spec {ty : UScalarTy} (x y : UScalar ty) (hy : y.val ≠ 0) :
-    UScalar.div_ceil x y ⦃ z =>
+    UScalar.div_ceil x y ⦃ (z : UScalar ty) =>
       z.val = (x.val + y.val - 1) / y.val ∧
       x.val ≤ z.val * y.val ∧ z.val * y.val < x.val + y.val ⦄ := by
   simp only [UScalar.div_ceil, hy, ↓reduceDIte, WP.spec_ok, UScalar.ofNatCore_val_eq, true_and]
   exact UScalar.div_ceil_is_ceil (by omega)
 
+/-- **Spec theorem for `core::num::{u8,…,usize}::div_ceil`**: the ceiling of `x / y`, for `y ≠ 0`
+    (Rust panics when `y = 0`). -/
 uscalar
 @[step]
 theorem core.num.«%S».div_ceil.spec (x y : «%S») (hy : y.val ≠ 0) :
-    core.num.«%S».div_ceil x y ⦃ z =>
+    core.num.«%S».div_ceil x y ⦃ (z : «%S») =>
       z.val = (x.val + y.val - 1) / y.val ∧
       x.val ≤ z.val * y.val ∧ z.val * y.val < x.val + y.val ⦄ :=
   UScalar.div_ceil.spec x y hy

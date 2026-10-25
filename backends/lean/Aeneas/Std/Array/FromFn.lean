@@ -58,16 +58,16 @@ theorem core.array.from_fn.ofFnM_spec {T F : Type u} {n : Nat} (fm : Fin n → S
     · simpa only [Vector.getElem_push_lt hj] using hvs j hj
     · simpa only [Vector.getElem_push_eq, Fin.val_last] using hv
 
-/-- Specification of `from_fn` for an invariant `inv` on the closure state: if every call
-    `cb(i)` (for `i < N`), starting from a state satisfying `inv i`, returns a value satisfying
-    `post i` and a state satisfying `inv (i + 1)`, then the `i`-th element of the resulting array
-    satisfies `post i`. -/
+/-- **Spec theorem for `core::array::from_fn`**, for a closure with state: if every call `cb(i)`
+    (for `i < N`), starting from a state satisfying `inv i`, returns a value satisfying `post i` and
+    a state satisfying `inv (i + 1)`, then the `i`-th element of the array satisfies `post i`. -/
 theorem core.array.from_fn.spec {T F : Type u} (N : Usize)
     (inst : core.ops.function.FnMut F Usize T) (f : F)
-    {post : Nat → T → Prop} (inv : Nat → F → Prop) (hinv : inv 0 f)
-    (h : ∀ (i : Usize) g, i.val < N.val → inv i.val g →
-      inst.call_mut g i ⦃ (v, g') => post i.val v ∧ inv (i.val + 1) g' ⦄) :
-    core.array.from_fn N inst f ⦃ a => ∀ j (hj : j < a.val.length), post j a.val[j] ⦄ := by
+    (inv : Nat → F → Prop) (post : Nat → T → Prop) (hinv : inv 0 f)
+    (h : ∀ (i : Usize) (g : F), i.val < N.val → inv i.val g →
+      inst.call_mut g i ⦃ (v : T) (g' : F) => post i.val v ∧ inv (i.val + 1) g' ⦄) :
+    core.array.from_fn N inst f ⦃ (a : Array T N) =>
+      ∀ j (hj : j < a.val.length), post j a.val[j] ⦄ := by
   simp only [core.array.from_fn, bind_tc_eq]
   apply spec_bind (core.array.from_fn.ofFnM_spec _ inv (fun i g hg => by
     have hi : i.val < 2 ^ UScalarTy.Usize.numBits := by have := N.hBounds; omega
@@ -79,8 +79,22 @@ theorem core.array.from_fn.spec {T F : Type u} (N : Usize)
   intro j hj
   simpa only [Vector.getElem_toList] using hv j (by simpa using hj)
 
-/-- Step specification of `from_fn` for closures whose `call_mut` returns the closure state
-    unchanged (this is the case for closures which don't mutate their captured state). For
+/-- **Spec theorem for `core::array::from_fn`**, as `core.array.from_fn.spec` but with the
+    elements read with `a[j]!`. -/
+theorem core.array.from_fn.spec_getElem! {T F : Type u} [Inhabited T] (N : Usize)
+    (inst : core.ops.function.FnMut F Usize T) (f : F)
+    (inv : Nat → F → Prop) (post : Nat → T → Prop) (hinv : inv 0 f)
+    (h : ∀ (i : Usize) (g : F), i.val < N.val → inv i.val g →
+      inst.call_mut g i ⦃ (v : T) (g' : F) => post i.val v ∧ inv (i.val + 1) g' ⦄) :
+    core.array.from_fn N inst f ⦃ (a : Array T N) => ∀ j < N.val, post j a[j]! ⦄ := by
+  apply spec_mono (core.array.from_fn.spec N inst f inv post hinv h)
+  intro a ha j hj
+  have hj' : j < a.val.length := by simpa using hj
+  rw [Array.getElem!_Nat_eq, getElem!_pos a.val j hj']
+  exact ha j hj'
+
+/-- **Spec theorem for `core::array::from_fn`**, for closures whose `call_mut` returns the closure
+    state unchanged (this is the case for closures which don't mutate their captured state). For
     closures which update their state, use `core.array.from_fn.spec` with an invariant.
 
     `post i` is the postcondition of the call on index `i`, on the pair (output, new state): it is
@@ -91,8 +105,9 @@ theorem core.array.from_fn.spec_stateless {T F : Type u} (N : Usize)
     (inst : core.ops.function.FnMut F Usize T) (f : F) {post : Nat → T × F → Prop}
     (h : ∀ (i : Usize), i.val < N.val → inst.call_mut f i ⦃ post i.val ⦄)
     (hstate : ∀ i r, post i r → r.2 = f) :
-    core.array.from_fn N inst f ⦃ a => ∀ j (hj : j < a.val.length), post j (a.val[j], f) ⦄ :=
-  core.array.from_fn.spec N inst f (post := fun j v => post j (v, f)) (fun _ g => g = f) rfl (by
+    core.array.from_fn N inst f ⦃ (a : Array T N) =>
+      ∀ j (hj : j < a.val.length), post j (a.val[j], f) ⦄ :=
+  core.array.from_fn.spec N inst f (fun _ g => g = f) (fun j v => post j (v, f)) rfl (by
     intro i g hi hg
     rw [hg]
     apply spec_mono (h i hi)

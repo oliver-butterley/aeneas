@@ -375,10 +375,17 @@ theorem SharedSlice.into_iter.spec {T : Type _} (s : Slice T) :
       iter.slice = s ∧ iter.i = 0 ⦄ := by
   simp [SharedSlice.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter, WP.spec_ok]
 
+/-- **Spec theorem for `<&mut [T; N] as IntoIterator>::into_iter`**: the iterator ranges over the
+    whole array from index `0`, and the back function writes the iterator's slice back into the
+    array. -/
 @[step]
-theorem MutAArray.into_iter.spec {T : Type _} {N : Usize} (a : Array T N) :
+theorem MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter.spec
+    {T : Type _} {N : Usize} (a : Array T N) :
     MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter a
     ⦃ (iter : core.slice.iter.IterMut T) (back : core.slice.iter.IterMut T → Array T N) =>
-      iter.slice.val = a.val ∧ iter.i = 0 ∧ back = fun it => Array.from_slice a it.slice ⦄ := by
-  simp [MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter, WP.spec_ok]
+      iter.slice.val = a.val ∧ iter.i = 0 ∧
+      ∀ iter' : core.slice.iter.IterMut T, iter'.slice.length = N.val →
+        (back iter').val = iter'.slice.val ⦄ := by
+  simp only [MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter, WP.spec_ok]
+  refine ⟨by simp, rfl, fun iter' h => Array.from_slice_val _ _ (by simpa using h)⟩
 end Aeneas.Std
