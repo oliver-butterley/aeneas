@@ -21,7 +21,8 @@ if ! lake exe cache get; then
   echo "::warning::Mathlib cache extraction failed; continuing with source build"
 fi
 
-lake build
+# Only the libraries users import, not the tests.
+lake build Aeneas AeneasMeta
 
 # Pack prebuilt oleans into an archive for Lake's automatic olean download.
 # Users who pin to a release tag get these instead of compiling from source.

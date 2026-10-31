@@ -145,7 +145,8 @@ jobs:
           cd dist_staging
           # Remove existing archive to avoid overwrite failures on macOS
           rm -f "../${{ matrix.artifact_name }}.tar.gz"
-          tar -czf "../${{ matrix.artifact_name }}.tar.gz" -- *
+          # `.lake` (hidden) holds the precompiled Lean library
+          tar -czf "../${{ matrix.artifact_name }}.tar.gz" -- * .lake
 
       # Verify the binary is functional.
       - name: Smoke Test

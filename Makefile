@@ -205,6 +205,11 @@ cargo-test:
 	done
 	@echo "# Rust unit tests done"
 
+# Build the Lean tests (the `AeneasTests` library)
+.PHONY: test-lean
+test-lean:
+	lake exe cache get && lake test
+
 # Replay the Lean tests and time them
 .PHONY: timed-lean
 timed-lean:

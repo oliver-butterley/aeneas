@@ -26,7 +26,7 @@ private def notCI : Bool := run_io
 
 /-- The Lean files generated from the Rust tests in `tests/src`, and their proofs.
 
-Not a default target: only built by `lake test`, never by users nor for the release. -/
+Not a default target: only built by `lake test`, neither by users nor for the release. -/
 lean_lib «AeneasTests» where
   srcDir := "tests/lean"
   globs := #[`AeneasTests.+]

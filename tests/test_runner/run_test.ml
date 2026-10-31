@@ -63,12 +63,12 @@ let run_aeneas (env : runner_env) (case : Input.t) (backend : Backend.t) =
   let check_output = per_backend.check_output in
   let aeneas_options = per_backend.aeneas_options in
   let action = per_backend.action in
-  (* No destination directory if we borrow-check *)
   let subdir =
     match subdir with
     | None -> []
     | Some x -> [ x ]
   in
+  (* No destination directory if we borrow-check *)
   let dest_command =
     match backend with
     | Backend.BorrowCheck -> []

@@ -76,7 +76,6 @@ When adding a new Rust test file in `tests/src/`:
    ```
    This tells the test runner to only extract for the Lean backend.
 
-
 2. **Mark test functions with `#[verify::test]`** — this generates `#guard` checks
    in the extracted code. Requires `#![feature(register_tool)]` and
    `#![register_tool(verify)]` at the crate level. Only functions with no generics,

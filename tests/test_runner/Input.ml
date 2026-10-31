@@ -39,7 +39,8 @@ let default_subdir (kind : kind) backend test_name : string option =
      - `skip`: don't process the file;
      - `known-failure`: TODO;
      - `subdir=...: set the subdirectory in which to store the outputs.
-          Defaults to nothing for lean and to the test name for other backends;
+          Defaults to nothing for lean and to the test name for other backends.
+          The Lean outputs always go below `AeneasTests/`;
      - `charon-args=...`: extra arguments to pass to charon;
      - `aeneas-args=...`: extra arguments to pass to aeneas;
      - `[backend,..]...`: where each `backend` is the name of a backend supported by
