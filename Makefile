@@ -85,12 +85,12 @@ build-bin-dir: build-bin build-lib build-runner
 
 .PHONY: extract-lean-std
 extract-lean-std:
-	cd backends/lean && lake exe cache get && lake exe extract
+	lake exe cache get && lake exe extract
 	cd src && dune fmt || true
 
 .PHONY: extract-lean-keywords
 extract-lean-keywords:
-	cd backends/lean && lake exe cache get && lake exe extract_lean_keywords
+	lake exe cache get && lake exe extract_lean_keywords
 	cd src && dune fmt || true
 
 # TODO: using ppx (in aeneas-ppx) breaks this command
@@ -208,7 +208,7 @@ cargo-test:
 # Replay the Lean tests and time them
 .PHONY: timed-lean
 timed-lean:
-	cd tests/lean && find . -type f -iname "*.lean" -not -path "./.lake/*" -exec printf "\n{}\n" \; -exec lake env time lean {} \;
+	find tests/lean/AeneasTests -type f -iname "*.lean" -exec printf "\n{}\n" \; -exec lake env time lean {} \;
 
 # =============================================================================
 # Nix

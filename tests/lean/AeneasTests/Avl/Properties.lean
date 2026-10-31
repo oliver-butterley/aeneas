@@ -1,6 +1,6 @@
-import Avl.Funs
-import Avl.Types
-import Avl.OrderSpec
+import AeneasTests.Avl.Funs
+import AeneasTests.Avl.Types
+import AeneasTests.Avl.OrderSpec
 
 namespace avl
 

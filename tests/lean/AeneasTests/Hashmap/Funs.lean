@@ -2,7 +2,7 @@
 -- [hashmap]: function definitions
 module
 public import Aeneas
-public import Hashmap.Types
+public import AeneasTests.Hashmap.Types
 @[expose] public section
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false

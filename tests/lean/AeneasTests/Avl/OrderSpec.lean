@@ -1,4 +1,4 @@
-import Avl.Funs
+import AeneasTests.Avl.Funs
 open Aeneas Std Result
 
 namespace avl

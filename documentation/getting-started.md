@@ -4,7 +4,7 @@ A complete walkthrough from Rust source code to a verified Lean proof using Aene
 
 ## Prerequisites
 
-1. **Lean 4** — matching the toolchain in `backends/lean/lean-toolchain`
+1. **Lean 4** — matching the `lean-toolchain` at the root of the Aeneas repository
 2. **Charon** — Rust compiler frontend that produces LLBC ([github.com/AeneasVerif/charon](https://github.com/AeneasVerif/charon))
 3. **Aeneas** — translates LLBC to Lean (`./bin/aeneas`)
 4. **lean-lsp-mcp** — MCP server for interactive proof development (`pip install lean-lsp-mcp`)
@@ -68,7 +68,7 @@ proofs/
 
 **`lean-toolchain`** — copy from Aeneas:
 ```bash
-cp /path/to/aeneas/backends/lean/lean-toolchain proofs/lean-toolchain
+cp /path/to/aeneas/lean-toolchain proofs/lean-toolchain
 ```
 
 **`lakefile.lean`:**
@@ -76,7 +76,7 @@ cp /path/to/aeneas/backends/lean/lean-toolchain proofs/lean-toolchain
 import Lake
 open Lake DSL
 
-require aeneas from "/path/to/aeneas/backends/lean"
+require aeneas from "/path/to/aeneas"
 
 package «my-crate» {}
 

@@ -1,4 +1,4 @@
-import Hashmap.Funs
+import AeneasTests.Hashmap.Funs
 
 open Aeneas Std Result
 

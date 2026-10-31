@@ -2,7 +2,7 @@
 -- [avl]: function definitions
 module
 public import Aeneas
-public import Avl.Types
+public import AeneasTests.Avl.Types
 @[expose] public section
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false

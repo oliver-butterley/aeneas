@@ -64,16 +64,24 @@ let run_aeneas (env : runner_env) (case : Input.t) (backend : Backend.t) =
   let aeneas_options = per_backend.aeneas_options in
   let action = per_backend.action in
   (* No destination directory if we borrow-check *)
+  let subdir =
+    match subdir with
+    | None -> []
+    | Some x -> [ x ]
+  in
   let dest_command =
     match backend with
     | Backend.BorrowCheck -> []
-    | _ ->
-        let subdir =
-          match subdir with
-          | None -> []
-          | Some x -> [ x ]
-        in
-        [ "-dest"; concat_path ([ env.dest_dir; backend_str ] @ subdir) ]
+    | Backend.Lean ->
+        (* The Lean tests form the `AeneasTests` library: their module names (and so the
+           imports between them) must start with `AeneasTests`, which `-subdir` ensures. *)
+        [
+          "-dest";
+          concat_path [ env.dest_dir; backend_str ];
+          "-subdir";
+          String.concat "/" ("AeneasTests" :: subdir);
+        ]
+    | _ -> [ "-dest"; concat_path ([ env.dest_dir; backend_str ] @ subdir) ]
   in
 
   (* Build the command *)

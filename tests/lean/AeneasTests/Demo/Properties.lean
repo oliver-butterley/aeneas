@@ -1,5 +1,5 @@
 import Aeneas
-import Demo.Demo
+import AeneasTests.Demo.Demo
 open Aeneas Std Result
 
 

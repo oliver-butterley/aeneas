@@ -15,8 +15,8 @@ open Lean Parser
 /-- The module whose fully-imported environment we read tokens from. -/
 def sourceModule : Name := `Aeneas
 
-/-- Output path for the generated OCaml file (relative to `backends/lean`). -/
-def outputFile : System.FilePath := "../../src/extract/LeanKeywords.ml"
+/-- Output path for the generated OCaml file (relative to the repository root). -/
+def outputFile : System.FilePath := "src/extract/LeanKeywords.ml"
 
 /-- Header comment for the generated OCaml file. -/
 def ocamlHeader : String :=

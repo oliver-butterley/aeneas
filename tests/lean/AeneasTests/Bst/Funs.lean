@@ -2,7 +2,7 @@
 -- [bst]: function definitions
 module
 public import Aeneas
-public import Bst.Types
+public import AeneasTests.Bst.Types
 @[expose] public section
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false

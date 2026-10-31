@@ -1,4 +1,4 @@
-import Curve25519.Curve25519
+import AeneasTests.Curve25519.Curve25519
 
 open Aeneas Std Result
 

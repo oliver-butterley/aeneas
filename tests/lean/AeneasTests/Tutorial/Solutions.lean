@@ -1,5 +1,5 @@
 import Aeneas
-import Tutorial.Tutorial
+import AeneasTests.Tutorial.Tutorial
 open Aeneas Std Result
 
 local macro_rules

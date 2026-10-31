@@ -40,7 +40,7 @@ This is one of the most effective proof strategies:
 
 4. **Refold the proof.** Progressively replace the expanded script with `step*`, which now handles more goals automatically thanks to the registered lemmas. The final proof might be a single `step*` call followed by a small finishing script.
 
-**Example from tests/lean/Tutorial/Solutions.lean:**
+**Example from tests/lean/AeneasTests/Tutorial/Solutions.lean:**
 ```lean
 -- Using step* to do most of the work
 theorem list_nth_mut1_spec'' {T: Type} [Inhabited T] (l : CList T) (i : U32)

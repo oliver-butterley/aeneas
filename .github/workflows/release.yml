@@ -110,12 +110,12 @@ jobs:
 
       - name: Hash Lean dependencies
         id: hash-lean-dependencies
-        run: echo "hash=$(nix-hash --flat --type sha256 dist_staging/backends/lean/lake-manifest.json)" >> "$GITHUB_OUTPUT"
+        run: echo "hash=$(nix-hash --flat --type sha256 dist_staging/lake-manifest.json)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Lean dependencies
         uses: actions/cache@v6
         with:
-          path: dist_staging/backends/lean/.lake
+          path: dist_staging/.lake
           key: ${{ matrix.os }}-lean-${{ steps.hash-lean-dependencies.outputs.hash }}
           restore-keys: |
             ${{ matrix.os }}-lean-
@@ -125,9 +125,9 @@ jobs:
           set -eo pipefail
 
           script="$PWD/scripts/ci-precompile-lean.sh"
-          cd dist_staging/backends/lean
+          cd dist_staging
           if [[ "${{ matrix.nix_machine }}" == "true" ]]; then
-            nix develop ../../.. --command "$script"
+            nix develop .. --command "$script"
           else
             "$script"
           fi
@@ -136,7 +136,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare.outputs.tag_name }}
-          files: dist_staging/backends/lean/.lake/lean-build-aeneas-*.tar.gz
+          files: dist_staging/.lake/lean-build-aeneas-*.tar.gz
 
       - name: Re-package Tarball
         run: |

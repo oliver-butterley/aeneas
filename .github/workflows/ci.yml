@@ -62,8 +62,8 @@ jobs:
       - id: lean_cache_key
         # The key covers every input of the Lean build
         run: |
-          deps=$(git rev-parse HEAD:backends/lean/lean-toolchain HEAD:backends/lean/lake-manifest.json HEAD:tests/lean/lake-manifest.json | sha256sum | cut -c1-16)
-          content=$(git rev-parse HEAD:backends/lean HEAD:tests/lean | sha256sum | cut -c1-16)
+          deps=$(git rev-parse HEAD:lean-toolchain HEAD:lake-manifest.json | sha256sum | cut -c1-16)
+          content=$(git rev-parse HEAD:lakefile.lean HEAD:backends/lean HEAD:tests/lean | sha256sum | cut -c1-16)
           prefix="lean-build-$deps-"
           echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
           echo "key=$prefix$content" >> "$GITHUB_OUTPUT"
@@ -74,7 +74,8 @@ jobs:
         run: |
           # Compare with `main` for PRs and with the previous tip of `main` for pushes to `main`.
           if [ "$EVENT" = push ]; then base=$BEFORE; else base=origin/main; fi
-          if git diff "$base" --quiet -- tests/lean backends/lean; then
+          lean_paths="lakefile.lean lean-toolchain lake-manifest.json backends/lean tests/lean"
+          if git diff "$base" --quiet -- $lean_paths; then
               echo 'lean files were not changed.'
               echo "CHECK_LEAN=false" >> "$GITHUB_ENV"
           else
@@ -116,17 +117,15 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: &lean_build_paths |
-            backends/lean/.lake/build/lib
-            backends/lean/.lake/build/ir
-            tests/lean/.lake/build/lib
-            tests/lean/.lake/build/ir
+            .lake/build/lib
+            .lake/build/ir
           key: ${{ needs.diff_lean_files.outputs.lean_cache_key }}
           restore-keys: ${{ needs.diff_lean_files.outputs.lean_cache_prefix }}
       - if: needs.diff_lean_files.outputs.check_lean == 'true'
-        run: nix develop --command bash -c "cd backends/lean && lake exe cache get && lake build Aeneas AeneasMeta --wfail"
+        run: nix develop --command bash -c "lake exe cache get && lake build Aeneas AeneasMeta --wfail"
       - if: needs.diff_lean_files.outputs.check_lean == 'true'
         # Lean cannot run its tests in the nix sandbox because `elan` will download things
-        run: nix develop --command bash -c "cd tests/lean && make"
+        run: nix develop --command bash -c "lake test"
       - if: >-
           needs.diff_lean_files.outputs.check_lean == 'true' ||
           needs.diff_lean_files.outputs.check_extract_builtin == 'true'

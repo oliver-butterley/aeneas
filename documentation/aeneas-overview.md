@@ -363,7 +363,7 @@ the same pattern in each case.
 
 ### 5.1 Prerequisites
 
-- A working Lean 4 installation (matching the toolchain in `backends/lean`)
+- A working Lean 4 installation (matching the `lean-toolchain` at the root of the Aeneas repository)
 - Charon (Rust compiler plugin for producing LLBC)
 - Aeneas binary
 
@@ -377,10 +377,10 @@ cd my_proofs
 
 **2. Use the correct Lean toolchain:**
 
-Copy (or symlink) the `lean-toolchain` file from `backends/lean` into your
+Copy (or symlink) the `lean-toolchain` file from the Aeneas repository root into your
 project root to ensure version compatibility:
 ```bash
-cp PATH_TO_AENEAS_REPO/backends/lean/lean-toolchain ./lean-toolchain
+cp PATH_TO_AENEAS_REPO/lean-toolchain ./lean-toolchain
 ```
 
 **3. Add Aeneas as a dependency:**
@@ -389,12 +389,12 @@ In your `lakefile.toml`:
 ```toml
 [[require]]
 name = "aeneas"
-path = "PATH_TO_AENEAS_REPO/backends/lean"
+path = "PATH_TO_AENEAS_REPO"
 ```
 
 Or in `lakefile.lean`:
 ```lean
-require aeneas from FileSystem.FilePath.mk "PATH_TO_AENEAS_REPO/backends/lean"
+require aeneas from FileSystem.FilePath.mk "PATH_TO_AENEAS_REPO"
 ```
 
 **4. Run Charon on your Rust crate:**
